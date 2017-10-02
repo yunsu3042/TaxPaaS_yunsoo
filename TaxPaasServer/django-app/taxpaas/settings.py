@@ -38,6 +38,21 @@ if DEBUG:
 else:
     config = json.loads(open(CONF_DIR.child("settings_deploy.json")).read())
 
+
+# User model
+AUTH_USER_MODEL = 'member.CustomUser'
+
+# if "USER" in os.environ and os.environ["USER"] == en_name:
+#     DEBUG = True
+# else:
+#     DEBUG = False
+
+DEBUG = True
+if DEBUG:
+    config = json.loads(open(CONF_DIR.child("settings_debug.json")).read())
+else:
+    config = json.loads(open(CONF_DIR.child("settings_deploy.json")).read())
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
