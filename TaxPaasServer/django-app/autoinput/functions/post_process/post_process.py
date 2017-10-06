@@ -4,6 +4,8 @@ __all__ = ('post_process1', 'post_process2')
 # 각각 데이터의 앞에 3글자를 통해 header를 만들고, header와 w2_dic을 연결
 # 데이터 정리 작업.
 # 각각 데이터의 앞에 3글자를 통해 header를 만들고, header와 w2_dic을 연결
+
+
 def post_process1(page, w2_dic):
     print("post_process 1을 진행합니다.")
     word_list = ['number', 'it', '(ein)', 'other', 'compensation', 'etc', 'code', 'zip', 'wages', 'tax', 'tips',

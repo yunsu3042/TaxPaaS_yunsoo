@@ -14,9 +14,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='TaxOrganizer',
+            name='LongTask',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_on', models.DateTimeField(auto_now_add=True)),
+                ('name', models.CharField(help_text='Enter a unique name for the task', max_length=128)),
+                ('progress', models.PositiveIntegerField(default=0)),
+                ('result', models.CharField(blank=True, max_length=128, null=True)),
             ],
         ),
     ]

@@ -13,6 +13,7 @@ class TaxPayerProfile(models.Model):
         'autoinput.SourceDoc', related_name='spouse_source_doc_set')
     children_source_doc = models.ForeignKey(
         'autoinput.SourceDoc', related_name='children_source_doc_set')
+    img = models.ImageField(upload_to="")
 
     def __str__(self):
         return self.user.name + "_tax payer"

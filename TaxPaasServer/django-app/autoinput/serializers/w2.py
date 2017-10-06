@@ -9,3 +9,4 @@ class W2Serializer(serializers.ModelSerializer):
     class Meta:
         model = W2
         fields = '__all__'
+

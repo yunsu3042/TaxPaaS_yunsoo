@@ -23,6 +23,7 @@ STATIC_ROOT = BASE_DIR.child("collected_static")
 
 MEDIA_ROOT = BASE_DIR.child('media')
 
+
 en_name = os.environ.get("LOGNAME")
 
 # User model
@@ -73,12 +74,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    # python - packages
     'debug_toolbar',
+    'storages',
+    'django_rq',
+    'django_rq_dashboard',
+    # django apps
+    'communication',
+    'post',
     'taxorg',
     'autoinput',
     'member',
-    'storages',
-    'communication',
 ]
 
 MIDDLEWARE = [
@@ -152,9 +158,77 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+# Queue Server for Redis, rq
+# RQ_QUEUES = {
+#     'default': {
+#         'HOST': 'localhost',
+#         'PORT': 6379,
+#         'DB': 0,
+#         'PASSWORD': 'qkdwjddl',
+#         'DEFAULT_TIMEOUT': 360,
+#         # 'USE_REDIS_CACHE': 'default',
+#     },
+#     'high': {
+#         'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),
+#  If you're on Heroku
+#         'DEFAULT_TIMEOUT': 500,
+#     },
+#     'low': {
+#         'HOST': 'localhost',
+#         'PORT': 6379,
+#         'DB': 0,
+#     }
+# }
+
+# Use redis for caches
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# Use the same redis as with caches for RQ
+RQ_QUEUES = {
+    'default': {
+        'USE_REDIS_CACHE': 'default',
+    },
+}
+
+# Loggin for redis rq
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s %(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'rq_scheduler': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 
 # secret key
