@@ -1,9 +1,12 @@
-from . import pre_process, ocr_process, post_process1, post_process2, insert_data
 import pickle
+
 from unipath import Path
 
+from . import pre_process, ocr_process, post_process1, post_process2
 dic_path = Path(__file__).ancestor(2).child('dictionary')
 w2_path = dic_path.child('w2_dictionary.pk1')
+
+__all__ = ('autocomplete', )
 
 
 def autocomplete(url=None):
