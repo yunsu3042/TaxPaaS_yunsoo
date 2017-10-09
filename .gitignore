@@ -4,6 +4,9 @@
 ### conf_files 
 .django-conf/
 
+### ipython 
+*.ipynb
+
 ### Django ###
 *.log
 *.pot
