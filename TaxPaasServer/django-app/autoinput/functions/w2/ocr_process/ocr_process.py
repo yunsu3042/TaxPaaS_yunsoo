@@ -3,10 +3,11 @@ import cv2
 import numpy as np
 from autoinput.functions import *
 from PIL import Image
+from autoinput.functions.decorator import timeit
 
 __all__ = ('ocr_process', 'solve_13box')
 
-
+@timeit
 # ocr Process
 def ocr_process(img_list):
     page = []
@@ -28,7 +29,7 @@ def ocr_process(img_list):
             page.append(pytesseract.image_to_string(img))
     return page
 
-
+@timeit
 def solve_13box(img, show=False):
     src = np.array(img)
     if img.mode != 'L':

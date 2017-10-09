@@ -1,7 +1,10 @@
 import sqlite3
+from autoinput.functions.decorator import timeit
+
 __all__ = ('insert_data', )
 
 
+@timeit
 def insert_data(rdbs):
     key_list = []
     value_list = []

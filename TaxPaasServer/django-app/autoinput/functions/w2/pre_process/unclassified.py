@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from autoinput.functions import timeit
+from autoinput.functions.decorator import timeit
 
 __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
            'check_max_line_wit', 'make_points_list', 'align_points',
@@ -14,17 +14,13 @@ __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
 
 
 @timeit
-def find_joints(url=None, img=None):
-    if url:
-        # 이미지를 읽는다.
-        src = cv2.imread(url)
-        # 이미지를 회색화한다.
-        gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-    elif img:
-        if img.mode != "L":
-            gray = img.convert("L")
-        else:
-            gray = img
+def find_joints(image=None):
+    if image.mode != "L":
+        gray = image.convert("L")
+    else:
+        gray = image
+    gray = np.array(gray)
+
     # 이미지 전처리_ 잡티제거 및 색 진하게
     cleaned_img = cv2.adaptiveThreshold(~gray, 255,
                                         cv2.ADAPTIVE_THRESH_MEAN_C,
@@ -389,10 +385,10 @@ def check_max_line_wit(h_final):
 
 
 @timeit
-def find_box_joints(img):
+def find_box_joints(image):
     # 이미지를 읽는다.
-    src = np.array(img)
-    if img.mode != 'L':
+    src = np.array(image)
+    if image.mode != 'L':
         gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
     else:
         gray = src
@@ -428,15 +424,16 @@ def pre_process(url=None, img=None, show=False):
     if url:
         src = cv2.imread(url)
         gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-        img = Image.fromarray(gray)
+        image = Image.fromarray(gray)
         if src.all():
             print("None Type Error : 이미지를 받아오지 못했습니다.")
     if img:
         if img.mode != "L":
-            img = img.convert("L")
+            image = img.convert("L")
+        else:
+            image = img
 
-    joints, mask, line_wit, v_size2, h_final, v_final = find_joints(url=url,
-                                                                    img=img)
+    joints, mask, line_wit, v_size2, h_final, v_final = find_joints(image=image)
     one_line = make_points_list(
         joints=joints, line_wit=line_wit, v_size2=v_size2
     )
@@ -455,5 +452,5 @@ def pre_process(url=None, img=None, show=False):
     fix_st_0 = fix_st_vertical(h_final, st=st)
     fix_st_1 = fix_st_horizontal(v_final, st=st)
     st = fix_st(st, fix_st_0=fix_st_0, fix_st_1=fix_st_1)
-    img_list = make_crack(ful_img=img, st=st, end=end)
+    img_list = make_crack(ful_img=image, st=st, end=end)
     return img_list
