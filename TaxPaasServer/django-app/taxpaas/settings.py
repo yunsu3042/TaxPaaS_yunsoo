@@ -34,11 +34,6 @@ if "USER" in os.environ and os.environ["USER"] == en_name:
 else:
     DEBUG = False
 
-if DEBUG:
-    config = json.loads(open(CONF_DIR.child("settings_debug.json")).read())
-else:
-    config = json.loads(open(CONF_DIR.child("settings_deploy.json")).read())
-
 
 # User model
 AUTH_USER_MODEL = 'member.CustomUser'
@@ -81,7 +76,6 @@ INSTALLED_APPS = [
     'django_rq_dashboard',
     # django apps
     'communication',
-    'post',
     'taxorg',
     'autoinput',
     'member',
@@ -149,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -159,27 +153,26 @@ USE_TZ = True
 
 
 
-# Queue Server for Redis, rq
-# RQ_QUEUES = {
-#     'default': {
-#         'HOST': 'localhost',
-#         'PORT': 6379,
-#         'DB': 0,
-#         'PASSWORD': 'qkdwjddl',
-#         'DEFAULT_TIMEOUT': 360,
-#         # 'USE_REDIS_CACHE': 'default',
-#     },
-#     'high': {
-#         'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),
-#  If you're on Heroku
-#         'DEFAULT_TIMEOUT': 500,
-#     },
-#     'low': {
-#         'HOST': 'localhost',
-#         'PORT': 6379,
-#         'DB': 0,
-#     }
-# }
+#Queue Server for Redis, rq
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        # 'PASSWORD': 'qkdwjddl',
+        'DEFAULT_TIMEOUT': 360,
+        # 'USE_REDIS_CACHE': 'default',
+    },
+    'high': {
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),
+        'DEFAULT_TIMEOUT': 500,
+    },
+    'low': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    }
+}
 
 # Use redis for caches
 CACHES = {

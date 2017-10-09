@@ -25,4 +25,5 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^django-rq/', include('django_rq.urls')),
+    url(r'^auto/', include('autoinput.urls')),
 ]
