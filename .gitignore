@@ -6,7 +6,9 @@
 
 ### ipython 
 *.ipynb
-
+### JupyterNotebook ###
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
 ### Django ###
 *.log
 *.pot
