@@ -23,3 +23,6 @@ class ScheduledTaskInstance(models.Model):
     scheduled_task = models.ForeignKey('ScheduledTask')
     created_on = models.DateTimeField(auto_now_add=True)
     result = models.CharField(max_length=128, blank=True, null=True)
+
+
+
