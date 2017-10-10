@@ -21,6 +21,8 @@ def w2_autocomplete(np_arr, name):
     img = Image.fromarray(np_arr)
     task.result = autocomplete(img=img)
     if task.result:
+        rdbs = task.result
+
         # 완성 알림 보내기
         pass
     else:
