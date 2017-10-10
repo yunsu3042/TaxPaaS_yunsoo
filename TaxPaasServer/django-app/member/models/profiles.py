@@ -6,24 +6,21 @@ __all__ = ('TaxPayerProfile', 'TaxPractitionerProfile', 'Connection')
 
 class TaxPayerProfile(models.Model):
     user = models.OneToOneField(AUTH_USER_MODEL)
-    organizer = models.ForeignKey('taxorg.TaxOrganizer')
-    my_source_doc = models.ForeignKey(
-        'autoinput.SourceDoc', related_name='my_source_doc_set')
-    spouse_source_doc = models.ForeignKey(
-        'autoinput.SourceDoc', related_name='spouse_source_doc_set')
-    children_source_doc = models.ForeignKey(
-        'autoinput.SourceDoc', related_name='children_source_doc_set')
-    img = models.ImageField(upload_to="")
+    organizer = models.OneToOneField('taxorg.TaxOrganizer', null=True, blank=True)
+    img = models.ImageField(upload_to="profile/payer", null=True, blank=True)
 
     def __str__(self):
-        return self.user.name + "_tax payer"
+        return self.user.email + "_tax payer"
 
 
 class TaxPractitionerProfile(models.Model):
     user = models.OneToOneField(AUTH_USER_MODEL)
     is_certificated = models.BooleanField(default=False)
     locals = models.CharField(max_length=100)
-    clients = models.ManyToManyField(TaxPayerProfile, through='Connection')
+    clients = models.ManyToManyField(TaxPayerProfile, through='Connection',
+                                     blank=True)
+    img = models.ImageField(upload_to="profile/practitioner", blank=True,
+                            null=True)
 
     def __str__(self):
         return self.user.name + "_tax practitioner"

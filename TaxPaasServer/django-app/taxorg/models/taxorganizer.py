@@ -4,5 +4,4 @@ __all__ = ('TaxOrganizer', )
 
 
 class TaxOrganizer(models.Model):
-    pass
-
+    personal_info = models.CharField(max_length=20, blank=True)

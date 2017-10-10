@@ -4,7 +4,11 @@ __all__ = ('W2', )
 
 
 class W2(models.Model):
+    # 회사 이름
+    name = models.CharField(max_length=100)
     img = models.ImageField(upload_to="w2")
+    source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True,
+                                   null=True)
     auto_start = models.BooleanField(default=False)
     ssn = models.CharField(max_length=50, blank=True)
     ein = models.CharField(max_length=50, blank=True)
@@ -38,3 +42,6 @@ class W2(models.Model):
     locality_name = models.CharField(max_length=30, blank=True)
     lc_wages = models.CharField(max_length=30, blank=True)
     lc_tax = models.CharField(max_length=30, blank=True)
+
+    def __str__(self):
+        return self.name
