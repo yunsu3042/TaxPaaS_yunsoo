@@ -7,16 +7,11 @@ from rest_framework.response import Response
 
 from autoinput.models import W2
 from autoinput.serializers import W2Serializer
+from member.models import TaxPayerProfile
 
 ast.literal_eval("{'x':1, 'y':2}")
 
-__all__ = ('W2CreateView', 'W2DetailView', )
-
-
-class W2CreateView(generics.CreateAPIView):
-    queryset = W2.objects.all()
-    serializer_class = W2Serializer
-    permission_classes = (permissions.IsAuthenticated, )
+__all__ = ('W2DetailView', )
 
 
 class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -28,27 +23,65 @@ class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
     # pk로 처리하게 되면 다른 사람의 개읹어보를 가져올 수 있기 때문에 큰일남
 
     def retrieve(self, request, *args, **kwargs):
-        user = request.user
-        pk = kwargs['pk']
-        w2 = W2.objects.filter(pk=pk)
+        source_doc = self.find_source_doc(request, *args, **kwargs)
+        w2 = source_doc.w2_set.all()
+        print(w2)
         if not w2:
             return Response({"detail": "요청한 w2가 존재하지 않습니다"},
                             status=status.HTTP_404_NOT_FOUND)
         else:
-            instance = self.get_object()
-            serializer = self.get_serializer(instance)
+            instance = w2
+            serializer = self.get_serializer(instance, many=True)
             return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
+        source_doc = self.find_source_doc(request, *args, **kwargs)
+        try:
+            w2 = source_doc.w2_set.all()[0]
+        except IndexError:
+            return Response({"detail": "요청한 w2가 존재하지 않습니다"},
+                            status=status.HTTP_404_NOT_FOUND)
+        self.kwargs['pk'] = w2.pk
         return self.update(request, *args, **kwargs)
 
     # user 확인 작업할 것
     def update(self, request, *args, **kwargs):
-        pk = kwargs.get("pk", None)
+        pk = self.kwargs.get("pk", None)
         if not pk:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        source_doc = self.find_source_doc(request, *args, **kwargs)
+        try:
+            w2 = source_doc.w2_set.all()[0]
+        except IndexError:
+            return Response({"detail": "요청한 w2가 존재하지 않습니다"},
+                            status=status.HTTP_404_NOT_FOUND)
+        self.kwargs['pk'] = w2.pk
+        return self.destroy(request, *args, **kwargs)
+
+    def find_source_doc(self, request, *args, **kwargs):
+        user = request.user
+        tax_payer = getattr(user, 'taxpayerprofile', None)
+        if not tax_payer:
+            tax_payer = TaxPayerProfile.objects.create(user=user)
+        source_doc_set = getattr(tax_payer, 'sourcedoc_set', None)
+        if not source_doc_set.all():
+            return Response({"errors": "w2 does not exists"},
+                            status=status.HTTP_404_NOT_FOUND)
+        category = kwargs.get('category', None)
+        if not category:
+            return Response({"errors": "You must send category"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        source_doc = source_doc_set.filter(category=category)[0]
+        return source_doc
+
+
+
+
+
 
 # rdbs['1'] = ssn
 # rdbs['2'] = first_name
