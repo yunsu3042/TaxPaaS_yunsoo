@@ -4,8 +4,6 @@ __all__ = ('W2', )
 
 
 class W2(models.Model):
-    # 회사 이름
-    name = models.CharField(max_length=100)
     img = models.ImageField(upload_to="w2")
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True,
                                    null=True)
@@ -44,4 +42,4 @@ class W2(models.Model):
     lc_tax = models.CharField(max_length=30, blank=True)
 
     def __str__(self):
-        return self.name
+        return "w2"
