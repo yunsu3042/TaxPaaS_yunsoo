@@ -1,6 +1,6 @@
 from django.db import models
 
-__all__ = ('PersonalInfo', 'DetailInfo')
+__all__ = ('PersonalInfo', 'DetailPersonalInfo')
 
 class PersonalInfo(models.model):
     streetAddr = models.CharField(max_length = 200,blank=True)
@@ -17,8 +17,8 @@ class PersonalInfo(models.model):
     #if (MARITALSTATUS_CHOICES=='3')
     dateOfSpouseDeath = DateField(input_formats=settings.DATE_INPUT_FORMATS, blank=True)
 
-class DetailInfo(models.model): #1. Personal Information
-    personalInfo = models.ForeignKey(PI,, on_delete=models.CASCADE)
+class DetailPersonalInfo(models.model): #1. Personal Information
+    personalInfo = models.ForeignKey(PersonalInfo,, on_delete=models.CASCADE)
     SELECTPERSON_CHOICES = (
     (u'1', u'Taxpayer'),
     (u'2', u'Spouse'),
