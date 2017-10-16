@@ -11,11 +11,10 @@ from PIL import Image
 # 추가 시간 0.006 sec
 # 나중에 name을 사용해서 my_source_dic인지 판별??
 # user가 추가되면 source doc에 w2_autocomplete 함수에서 연결
-def w2_autocomplete(np_arr, name):
+def w2_autocomplete(np_arr):
     job = get_current_job()
 
     task = Task.objects.create(
-        name=name,
         job_id=job.get_id()
     )
     img = Image.fromarray(np_arr)
