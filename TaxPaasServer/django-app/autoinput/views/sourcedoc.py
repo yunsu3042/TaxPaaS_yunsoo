@@ -1,32 +1,49 @@
 from rest_framework import generics
-from rest_framework import permissions
 from autoinput.models import SourceDoc
+from rest_framework import permissions
 from autoinput.serializers import SourceDocSerializer
+from member.models import TaxPayerProfile
+from rest_framework.response import Response
+from rest_framework import status
+
+__all__ = ('SourceDocDetailView', )
 
 
-class SourceDocCreateView(generics.CreateAPIView):
+class SourceDocDetailView(generics.RetrieveAPIView):
     queryset = SourceDoc.objects.all()
     serializer_class = SourceDocSerializer
-    permissions = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, )
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        source_doc = self.get_fit_source_doc(request, *args, **kwargs)
+        if source_doc is None:
+            return Response({"errors": "요청하신 Source_doc이 없습니다"},
+                            status=status.HTTP_404_NOT_FOUND)
+        self.kwargs['source_doc'] = source_doc
+        return self.retrieve(request, *args, **kwargs)
 
-    def create(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.kwargs['source_doc']
+        print(instance.tax_payer)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_fit_source_doc(self, request, *args, **kwargs):
+        category = kwargs['category']
+        doc_order = kwargs['doc_order']
+        tax_payer = self.get_tax_payer(request)
+        request.data._mutable = True
+        request.data['tax_payer'] = tax_payer.pk
+        source_docs = tax_payer.sourcedoc_set.filter(category=category).filter(
+            doc_order=doc_order)
+        if source_docs.exists():
+            return source_docs[0]
+        else:
+            return None
+
+    def get_tax_payer(self, request):
         user = request.user
-        user.tax
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-    def get_success_headers(self, data):
-        try:
-            return {'Location': data[api_settings.URL_FIELD_NAME]}
-        except (TypeError, KeyError):
-            return {}
+        tax_payer = getattr(user, 'taxpayerprofile', None)
+        if tax_payer is None:
+            tax_payer = TaxPayerProfile.objects.create(user=user)
+        return tax_payer
