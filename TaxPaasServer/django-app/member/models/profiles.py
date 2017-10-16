@@ -30,5 +30,5 @@ class Connection(models.Model):
     tax_practitioner = models.ForeignKey(TaxPractitionerProfile)
     tax_payer = models.ForeignKey(TaxPayerProfile)
     joined_date = models.DateTimeField(auto_now=True)
-    description = models.CharField(max_length=1000, blank=True)
+    description = models.TextField(blank=True)
     task = models.CharField(max_length=500, blank=True)
