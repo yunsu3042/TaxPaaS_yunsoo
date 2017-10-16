@@ -13,3 +13,4 @@ urlpatterns = [
     url(r'source_doc/(?P<category>\w+)/(?P<doc_order>\d+)/$',
         SourceDocDetailView.as_view(), name='source_doc_detail'),
 ]
+
