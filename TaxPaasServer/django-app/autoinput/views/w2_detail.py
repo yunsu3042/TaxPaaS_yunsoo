@@ -23,28 +23,49 @@ class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
     # pk로 처리하게 되면 다른 사람의 개읹어보를 가져올 수 있기 때문에 큰일남
 
     def retrieve(self, request, *args, **kwargs):
-        source_doc = self.find_source_doc(request, *args, **kwargs)
-        w2 = source_doc.w2_set.all()
-        print(w2)
-        if not w2:
-            return Response({"detail": "요청한 w2가 존재하지 않습니다"},
+        # request.data를 수정 가능하도록 코드 추가
+        request.data._mutable = True
+        request.data['category'] = kwargs['category']
+        request.data['order'] = kwargs['order']
+        request.data['doc_order'] = kwargs['doc_order']
+        source_doc = self.get_source_doc(request, *args, **kwargs)
+        if not source_doc:
+            return Response({"errors": "요청한 유저의 SourceDoc이 존재하지 않습니다"},
                             status=status.HTTP_404_NOT_FOUND)
-        else:
-            instance = w2
-            serializer = self.get_serializer(instance, many=True)
-            return Response(serializer.data)
+        elif source_doc:
+            request.data['source_doc'] = source_doc.pk
+        print("_"*70)
+        print(source_doc)
+
+        order = request.data['order']
+        # 쿼리셋을 인스턴스화 하기 인덱스를 주어서
+        instance = source_doc.w2_set.filter(order=order)[0]
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
-        source_doc = self.find_source_doc(request, *args, **kwargs)
-        try:
-            w2 = source_doc.w2_set.all()[0]
-        except IndexError:
-            return Response({"detail": "요청한 w2가 존재하지 않습니다"},
+        order = kwargs.get("order", None)
+        request.data._mutable = True
+        request.data['category'] = kwargs['category']
+        request.data['order'] = kwargs['order']
+        request.data['doc_order'] = kwargs['doc_order']
+        if order is None:
+            print("order가 없다면")
+            return Response({"error": "order를 입력하세요"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        source_doc = self.get_source_doc(request, *args, **kwargs)
+        print(source_doc)
+        if not source_doc:
+            return Response({"errors": "요청한 유저의 SourceDoc이 존재하지 않습니다"},
                             status=status.HTTP_404_NOT_FOUND)
+        w2_set = source_doc.w2_set.filter(order=order)
+        if w2_set is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        w2 = w2_set[0]
         self.kwargs['pk'] = w2.pk
         return self.update(request, *args, **kwargs)
 
-    # user 확인 작업할 것
+    # put에서 유저 정보 입력받음
     def update(self, request, *args, **kwargs):
         pk = self.kwargs.get("pk", None)
         if not pk:
@@ -53,37 +74,53 @@ class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
         return super().update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        source_doc = self.find_source_doc(request, *args, **kwargs)
-        try:
-            w2 = source_doc.w2_set.all()[0]
-        except IndexError:
-            return Response({"detail": "요청한 w2가 존재하지 않습니다"},
+        request.data._mutable = True
+        request.data['category'] = kwargs['category']
+        request.data['order'] = kwargs['order']
+        request.data['doc_order'] = kwargs['doc_order']
+        order = kwargs.get("order", None)
+        if order is None:
+            print("order가 없다면")
+            return Response({"error": "order를 입력하세요"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        source_doc = self.get_source_doc(request, *args, **kwargs)
+        print(source_doc)
+        if not source_doc:
+            return Response({"errors": "요청한 유저의 SourceDoc이 존재하지 않습니다"},
                             status=status.HTTP_404_NOT_FOUND)
+        w2_set = source_doc.w2_set.filter(order=order)
+        if not w2_set.exists():
+            return Response({"errors": "요청한 w2가 존재하지 않습니다"},
+                            status=status.HTTP_404_NOT_FOUND)
+        w2 = w2_set[0]
         self.kwargs['pk'] = w2.pk
         return self.destroy(request, *args, **kwargs)
 
-    def find_source_doc(self, request, *args, **kwargs):
+    def get_source_doc(self, request, *args, **kwargs):
+        category = request.data['category']
+        doc_order = request.data['doc_order']
+        tax_payer = self.get_tax_payer(request)
+        request.data['tax_payer'] = tax_payer.pk
+        source_docs = tax_payer.sourcedoc_set.filter(category=category).filter(
+            doc_order=doc_order)
+        if source_docs.exists():
+            return source_docs[0]
+        else:
+            return None
+
+    def get_tax_payer(self, request):
         user = request.user
         tax_payer = getattr(user, 'taxpayerprofile', None)
-        if not tax_payer:
+        if tax_payer is None:
             tax_payer = TaxPayerProfile.objects.create(user=user)
-        source_doc_set = getattr(tax_payer, 'sourcedoc_set', None)
-        if not source_doc_set.all():
-            return Response({"errors": "w2 does not exists"},
-                            status=status.HTTP_404_NOT_FOUND)
-        category = kwargs.get('category', None)
-        if not category:
-            return Response({"errors": "You must send category"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        source_doc = source_doc_set.filter(category=category)[0]
-        return source_doc
+        return tax_payer
 
 
 
 
 
 
-# rdbs['1'] = ssn
+            # rdbs['1'] = ssn
 # rdbs['2'] = first_name
 # rdbs['3'] = last_name
 # rdbs['4'] = state_zip[1]
