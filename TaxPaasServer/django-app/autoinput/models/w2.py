@@ -7,6 +7,7 @@ class W2(models.Model):
     img = models.ImageField(upload_to="w2")
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True,
                                    null=True)
+    order = models.IntegerField(default=0)
     auto_start = models.BooleanField(default=False)
     ssn = models.CharField(max_length=50, blank=True)
     ein = models.CharField(max_length=50, blank=True)

@@ -10,6 +10,7 @@ CATEGORY_CHOICE = (('M', 'Mine'),
 class SourceDoc(models.Model):
     tax_payer = models.ForeignKey('member.TaxPayerProfile', blank=True, null=True)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICE)
+    doc_order = models.IntegerField(default=0)
 
     def __str__(self):
         return self.category
