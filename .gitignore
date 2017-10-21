@@ -1,9 +1,17 @@
 
 # Created by https://www.gitignore.io/api/macos,python,django,pycharm
 
+### Test file for my own
+autoinput/models/test.py
+
 ### conf_files 
 .django-conf/
 
+### ipython 
+*.ipynb
+### JupyterNotebook ###
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
 ### Django ###
 *.log
 *.pot
