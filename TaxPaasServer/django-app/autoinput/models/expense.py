@@ -22,6 +22,8 @@ class Ten99DIV(models.Model):
 # 정부 지원금, 실업수당 포함
 class Ten99G(models.Model):
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True, null=True)
+    name = models.CharField(max_length=30, blank=True)
+
     city = models.CharField(max_length=30, blank=True)
     ssn = models.CharField(max_length=30, blank=True)
 

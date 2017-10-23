@@ -119,10 +119,10 @@ def post_process2(result):
     first_name = result["e Employee's Name, Address, and ZIP Code"][0].split(" ")[0]
     last_name = result["e Employee's Name, Address, and ZIP Code"][0].split(" ")[1]
     street = result["e Employee's Name, Address, and ZIP Code"][1]
-    state_zip = result["e Employee's Name, Address, and ZIP Code"][2].split(",")[1].split(" ")
+    employee_state_zip_code = result["e Employee's Name, Address, and ZIP Code"][2].split(",")[1].split(" ")
     for _ in range(10):
-        if '' in state_zip:
-            state_zip.remove('')
+        if '' in employee_state_zip_code:
+            employee_state_zip_code.remove('')
         else:
             break
     city = result["e Employee's Name, Address, and ZIP Code"][2].split(",")[0]
@@ -149,104 +149,104 @@ def post_process2(result):
     employer_state = employer_state_zip[0]
     employer_zip = employer_state_zip[1]
 
-    wtc = result['1 Wages, tips, other compensation']
-    fitw = result['2 Federal income tax withheld']
-    ssw = result['3 Social security wages']
-    sstw = result['4 Social security tax withheld']
-    mwat = result['5 Medicare wages and tips']
-    mtw = result['6 Medicare tax withheld']
-    sst = result['7 Social security tips']
-    at = result['8 Allocated tips']
-    dcb = result['10 Dependent Care Benefits']
+    wage = result['1 Wages, tips, other compensation']
+    federal_income = result['2 Federal income tax withheld']
+    social_security_wages = result['3 Social security wages']
+    social_security_tax = result['4 Social security tax withheld']
+    medicare_wages = result['5 Medicare wages and tips']
+    medicare_tax = result['6 Medicare tax withheld']
+    social_security_tips = result['7 Social security tips']
+    allocated_tips = result['8 Allocated tips']
+    dependent_care_benefits = result['10 Dependent Care Benefits']
     if '11 Nonqualiﬁed plans' in result:
-        np = result['11 Nonqualiﬁed plans']
+        non_qualified_plans = result['11 Nonqualiﬁed plans']
     else:
-        np = []
+        non_qualified_plans = []
     if '12a See instructions for box 12' in result:
-        bx_12a = result['12a See instructions for box 12'][0]
+        box12a = result['12a See instructions for box 12'][0]
     else:
-        bx_12a = result['12 See Instructions for box 12'][0]
+        box12a = result['12 See Instructions for box 12'][0]
     if '12b Not defined' in result:
-        bx_12b = result['12b Not defined']
+        box12b = result['12b Not defined']
     else:
-        bx_12b = []
+        box12b = []
     if '12c Not defined' in result:
-        bx_12c = result['12c Not defined']
+        box12c = result['12c Not defined']
     else:
-        bx_12c = []
+        box12c = []
     if '12d Not defined' in result:
-        bx_12d = result['12d Not defined']
+        box12d = result['12d Not defined']
     else:
-        bx_12d = []
-    bx_13_se = result['Statutory employee']
-    bx_13_rp = result['Retirement plan']
-    bx_13_tpsp = result['Third-party sick pay']
+        box12d = []
+    box13_se = result['Statutory employee']
+    box13_rp = result['Retirement plan']
+    box13_tpsp = result['Third-party sick pay']
     if len(result['14 Other']) != 0:
-        bx_14_type = result['14 Other'][0].split(" ")[0]
-        bx_14_amount = result['14 Other'][0].split(" ")[1]
+        box14_type = result['14 Other'][0].split(" ")[0]
+        box14_amount = result['14 Other'][0].split(" ")[1]
     else:
-        bx_14_type = []
-        bx_14_amount = []
+        box14_type = []
+        box14_amount = []
     if "|" in result['15 State Employer‘s state ID number'][0]:
-        state = result['15 State Employer‘s state ID number'][0].split("|")[0]
-        esin = result['15 State Employer‘s state ID number'][0].split("|")[1]
+        employer_state2 = result['15 State Employer‘s state ID number'][0].split("|")[0]
+        employer_state_id = result['15 State Employer‘s state ID number'][0].split("|")[1]
     else:
-        state = result['15 State Employer‘s state ID number'][0]
-        esin = result["Employer's State ID Number"][0]
+        employer_state2 = result['15 State Employer‘s state ID number'][0]
+        employer_state_id = result["Employer's State ID Number"][0]
     for _ in range(10):
-        if ' ' in esin:
-            if type(esin) != list:
-                tmp = list(esin)
+        if ' ' in employer_state_id:
+            if type(employer_state_id) != list:
+                tmp = list(employer_state_id)
                 tmp.remove(' ')
-                esin = "".join(tmp)
+                employer_state_id = "".join(tmp)
             else:
-                esin.remove(' ')
+                employer_state_id.remove(' ')
         else:
             break
 
-    swte = result['16 State wages, tips, etc']
-    sit = result['17 State income tax']
-    ln = result['20 Locality name']
-    lwte = result['18 Local wages, tips, etc']
-    lit = result['19 Local income tax']
+    state_wages = result['16 State wages, tips, etc']
+    state_tax = result['17 State income tax']
+    locality_name = result['20 Locality name']
+    local_wages = result['18 Local wages, tips, etc']
+    local_tax = result['19 Local income tax']
 
-    rdbs['1'] = ssn
-    rdbs['2'] = first_name
-    rdbs['3'] = last_name
-    rdbs['4'] = state_zip[1]
-    rdbs['5'] = street
-    rdbs['6'] = city
-    rdbs['7'] = state_zip[0]
-    rdbs['8'] = EIN
-    rdbs['9'] = employer_name
-    rdbs['10'] = employer_zip
-    rdbs['11'] = employer_street
-    rdbs['12'] = employer_city
-    rdbs['13'] = employer_state
-    rdbs['14'] = wtc
-    rdbs['15'] = fitw
-    rdbs['16'] = ssw
-    rdbs['17'] = sstw
-    rdbs['18'] = mwat
-    rdbs['19'] = mtw
-    rdbs['20'] = sst
-    rdbs['21'] = at
-    rdbs['22'] = dcb
-    rdbs['23'] = np
-    rdbs['24'] = bx_12a
-    rdbs['25'] = bx_12b
-    rdbs['26'] = bx_12c
-    rdbs['27'] = bx_12d
-    rdbs['28'] = bx_13_se
-    rdbs['29'] = bx_13_rp
-    rdbs['30'] = bx_13_tpsp
-    rdbs['31'] = bx_14_type
-    rdbs['32'] = bx_14_amount
-    rdbs['33'] = state
-    rdbs['34'] = esin
-    rdbs['35'] = swte
-    rdbs['36'] = sit
-    rdbs['37'] = ln
-    rdbs['38'] = lwte
-    rdbs['39'] = lit
+    rdbs['ssn'] = ssn
+    rdbs['employee_first_name'] = str(first_name)
+    rdbs['employee_last_name'] = str(last_name)
+    rdbs['employee_zip_code'] = str(employee_state_zip_code[1])
+    rdbs['street'] = str(street)
+    rdbs['city'] = str(city)
+    rdbs['employee_state'] = str(employee_state_zip_code[0])
+    rdbs['ein'] = str(EIN)
+    rdbs['employer_name'] = str(employer_name)
+    rdbs['employer_zip'] = str(employer_zip)
+    rdbs['employer_street'] = str(employer_street)
+    rdbs['employer_city'] = str(employer_city)
+    rdbs['employer_state'] = str(employer_state)
+    rdbs['wage'] = str(wage)
+    rdbs['federal_income'] = str(federal_income)
+    rdbs['social_security_wages'] = str(social_security_wages)
+    rdbs['social_security_tax'] = str(social_security_tax)
+    rdbs['medicare_wages'] = str(medicare_wages)
+    rdbs['medicare_tax'] = str(medicare_tax)
+    rdbs['social_security_tips'] = str(social_security_tips)
+    rdbs['allocated_tips'] = str(allocated_tips)
+    rdbs['dependent_care_benefits'] = str(dependent_care_benefits)
+    rdbs['non_qualified_plans'] = str(non_qualified_plans)
+    rdbs['box12a'] = str(box12a)
+    rdbs['box12b'] = str(box12b)
+    rdbs['box12c'] = str(box12c)
+    rdbs['box12d'] = str(box12d)
+    rdbs['box13_se'] = str(box13_se)
+    rdbs['box13_rp'] = str(box13_rp)
+    rdbs['box13_tpsp'] = str(box13_tpsp)
+    rdbs['box14_type'] = str(box14_type)
+    rdbs['box14_amount'] = str(box14_amount)
+    rdbs['employer_state2'] = str(employer_state2)
+    rdbs['employer_state_id'] = str(employer_state_id)
+    rdbs['state_wages'] = str(state_wages)
+    rdbs['state_tax'] = str(state_tax)
+    rdbs['locality_name'] = str(locality_name)
+    rdbs['local_wages'] = str(local_wages)
+    rdbs['local_tax'] = str(local_tax)
     return rdbs

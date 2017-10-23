@@ -4,14 +4,14 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.response import Response
-
+from django.shortcuts import get_object_or_404
 from autoinput.models import W2
 from autoinput.serializers import W2Serializer
 from member.models import TaxPayerProfile
 
 ast.literal_eval("{'x':1, 'y':2}")
 
-__all__ = ('W2DetailView', )
+__all__ = ('W2DetailView', 'W2DetailView2')
 
 
 class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -116,18 +116,28 @@ class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
         return tax_payer
 
 
+class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
+    queryset = W2.objects.all()
+    serializer_class = W2Serializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    # 나중에 url에 오는 단어를 기준으로 하나의 클래스에서 처리하게 할것
+    # pk로 처리하게 되면 다른 사람의 개읹어보를 가져올 수 있기 때문에 큰일남
+
+    # put에서 유저 정보 입력받음
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
 
 
-
-
-            # rdbs['1'] = ssn
+                # rdbs['1'] = ssn
+# rdbs['8'] = EIN
 # rdbs['2'] = first_name
 # rdbs['3'] = last_name
 # rdbs['4'] = state_zip[1]
+# rdbs['7'] = state_zip[0]
 # rdbs['5'] = street
 # rdbs['6'] = city
-# rdbs['7'] = state_zip[0]
-# rdbs['8'] = EIN
 # rdbs['9'] = employer_name
 # rdbs['10'] = employer_zip
 # rdbs['11'] = employer_street

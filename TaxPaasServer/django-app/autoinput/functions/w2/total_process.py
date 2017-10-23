@@ -12,8 +12,8 @@ __all__ = ('autocomplete', )
 def autocomplete(url=None, img=None):
     with open(w2_path, 'rb') as f:
         w2_dic = pickle.load(f)
-    img_list = pre_process(url=url, img=img, show=False)
+    img_list, st, end = pre_process(url=url, img=img, show=False)
     page = ocr_process(img_list)
     result = post_process1(page=page, w2_dic=w2_dic)
     rdbs = post_process2(result=result)
-    return rdbs
+    return rdbs, st, end

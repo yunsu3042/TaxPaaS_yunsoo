@@ -453,4 +453,4 @@ def pre_process(url=None, img=None, show=False):
     fix_st_1 = fix_st_horizontal(v_final, st=st)
     st = fix_st(st, fix_st_0=fix_st_0, fix_st_1=fix_st_1)
     img_list = make_crack(ful_img=image, st=st, end=end)
-    return img_list
+    return img_list, st, end

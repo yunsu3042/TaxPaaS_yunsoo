@@ -5,13 +5,14 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 
-from autoinput.models import Task
+from autoinput.models import Task, W2
 from autoinput.serializers import TaskSerializer
 from autoinput.task_func import w2_autocomplete
 from member.models import TaxPayerProfile
 
-__all__ = ('W2TaskCreateView', )
+__all__ = ('W2TaskCreateView', 'W2TaskCreateView2')
 
 
 # W2 Task Queue Create View
@@ -30,8 +31,9 @@ class W2TaskCreateView(generics.CreateAPIView):
         request.data['doc_order'] = kwargs['doc_order']
         request.data['order'] = kwargs['order']
         source_doc = self.get_source_doc(request, *args, **kwargs)
-        request.data['source_doc'] =source_doc.pk
-
+        request.data['source_doc'] = source_doc.pk
+        print(source_doc)
+        print(source_doc.w2_set.all())
         if source_doc.w2_set.filter(order=request.data['order']).exists():
             w2 = source_doc.w2_set.filter(order=request.data['order'])[0]
         else:
@@ -39,8 +41,9 @@ class W2TaskCreateView(generics.CreateAPIView):
                             status=status.HTTP_404_NOT_FOUND)
         file = storage.open(w2.img.name)
         img = Image.open(file).convert("L")
+        # img = resize_img(img, size)
         np_img = np.array(img)
-        w2_autocomplete.delay(np_img)
+        w2_autocomplete.delay(np_img, w2.pk)
         return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
 
     def get_source_doc(self, request, *args, **kwargs):
@@ -67,3 +70,30 @@ class W2TaskCreateView(generics.CreateAPIView):
         if tax_payer is None:
             tax_payer = TaxPayerProfile.objects.create(user=user)
         return tax_payer
+
+    def resize_img(self, size):
+        pass
+
+
+# W2 Task Queue Create View
+class W2TaskCreateView2(generics.CreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        pk = request.data['pk']
+        w2 = get_object_or_404(W2, pk=pk)
+
+        file = storage.open(w2.img.name)
+        img = Image.open(file).convert("L")
+        # img = resize_img(img, size)
+        np_img = np.array(img)
+        w2_autocomplete.delay(np_img, w2.pk)
+        return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
+
+    def resize_img(self, size):
+        pass

@@ -74,7 +74,8 @@ INSTALLED_APPS = [
     'storages',
     'django_rq',
     'django_rq_dashboard',
-    'phonenumber_field',
+    'pyfcm',
+    # 'phonenumber_field',
     # django apps
     'communication',
     'taxorg',
