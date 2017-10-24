@@ -6,11 +6,20 @@ __all__ = ('Ten99INT', 'Ten99DIV', 'Ten99G', 'Ten99MISC', 'Ten99Mortgage',
 
 # 이자소득
 class Ten99INT(models.Model):
+    img = models.ImageField(upload_to="ten99int")
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True, null=True)
-    fields = models.CharField(max_length=30, blank=True)
-    interest_income = models.CharField(max_length=30, blank=True)
-    name = models.CharField(max_length=30, blank=True)
-
+    doc_order = models.CharField(max_length=50, blank=True)
+    order = models.IntegerField(default=0)
+    fields = models.CharField(max_length=50, blank=True)
+    interest_income = models.CharField(max_length=50, blank=True)
+    payer_name = models.CharField(max_length=50, blank=True)
+    payer_city =
+    payer_stress =
+    payer_state =
+    rtn =
+    interest_income =
+    early_withdrawal_penalty =
+    
 
 # 배당소득
 class Ten99DIV(models.Model):

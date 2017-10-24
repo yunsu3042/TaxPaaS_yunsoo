@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from autoinput.models import W2
 import ast
-
+from PIL import Image
 __all__ = ('W2Serializer', 'W2Serializer2')
 
 
@@ -19,6 +19,7 @@ class W2Serializer2(serializers.ModelSerializer):
     class Meta:
         model = W2
         fields = ('id', 'img', 'img_size', 'source_doc', 'order', 'results')
+
 
     def get_img_size(self, obj):
         img = obj.img
@@ -66,7 +67,8 @@ class W2Serializer2(serializers.ModelSerializer):
                     data['name'] = key
                     data['index'] = index
                     data['value'] = getattr(w2, data['name'])
-                    # data['value'] =
+                    if data['value'] == "[]":
+                        data['value'] = ""
                     results.append(data)
                     data = {}
                     index += 1
@@ -80,10 +82,11 @@ class W2Serializer2(serializers.ModelSerializer):
                 if data['name'] == "":
                     continue
                 data['value'] = getattr(w2, data['name'])
+                if data['value'] == "[]":
+                    data['value'] = ""
                 results.append(data)
                 index += 1
             coordinate_index += 1
-            results.append({"status": "finished"})
         return results
 
 

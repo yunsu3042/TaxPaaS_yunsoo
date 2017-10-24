@@ -3,6 +3,7 @@ from django.conf.urls import url
 from autoinput.views import W2TaskCreateView, W2CreateView, W2CreateView2,\
     W2DetailView, W2DetailView2, SourceDocDetailView, SourceDocDetailView2, \
     W2TaskCreateView2
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     url(r'w2/task/(?P<category>\w+)/(?P<doc_order>\d+)/(?P<order>\d+)/$',
@@ -19,7 +20,7 @@ urlpatterns = [
     url(r'w2/task/$',
         W2TaskCreateView2.as_view(), name='w2_task_create'),
     url(r'w2/create/$',
-        W2CreateView2.as_view(), name='w2_create'),
+        csrf_exempt(W2CreateView2.as_view()), name='w2_create'),
     url(r'w2/(?P<pk>\d+)/$',
         W2DetailView2.as_view(), name='w2_detail'),
 ]
