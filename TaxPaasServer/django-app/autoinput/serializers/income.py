@@ -39,8 +39,11 @@ class W2Serializer2(serializers.ModelSerializer):
                 "local_wages", "local_tax"]
         coordinate_index = 0
         index = 0
-        cut_start_points = ast.literal_eval(w2.cut_start_points)
-        cut_end_points = ast.literal_eval(w2.cut_end_points)
+        try:
+            cut_start_points = ast.literal_eval(w2.cut_start_points)
+            cut_end_points = ast.literal_eval(w2.cut_end_points)
+        except:
+            return {"status": "not finished"}
         while(coordinate_index < len(cut_start_points)):
             data = {}
             start_x = cut_start_points[coordinate_index][1]
@@ -80,7 +83,7 @@ class W2Serializer2(serializers.ModelSerializer):
                 results.append(data)
                 index += 1
             coordinate_index += 1
-
+            results.append({"status": "finished"})
         return results
 
 
