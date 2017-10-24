@@ -28,6 +28,7 @@ class W2(models.Model):
     employee_last_name = models.CharField(max_length=50, blank=True)
     employee_zip_code = models.CharField(max_length=50, blank=True)
     employee_state = models.CharField(max_length=50, blank=True)
+    employee_city = models.CharField(max_length=50, blank=True)
     employer_name = models.CharField(max_length=50, blank=True)
     employer_city = models.CharField(max_length=50, blank=True)
     employer_state = models.CharField(max_length=50, blank=True)

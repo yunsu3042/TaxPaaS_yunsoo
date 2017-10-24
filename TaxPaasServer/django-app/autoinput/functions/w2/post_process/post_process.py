@@ -215,7 +215,7 @@ def post_process2(result):
     rdbs['employee_last_name'] = str(last_name)
     rdbs['employee_zip_code'] = str(employee_state_zip_code[1])
     rdbs['street'] = str(street)
-    rdbs['city'] = str(city)
+    rdbs['employee_city'] = str(city)
     rdbs['employee_state'] = str(employee_state_zip_code[0])
     rdbs['ein'] = str(EIN)
     rdbs['employer_name'] = str(employer_name)

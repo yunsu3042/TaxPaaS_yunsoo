@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from autoinput.models import W2
-from autoinput.serializers import W2Serializer
+from autoinput.serializers import W2Serializer, W2Serializer2
 from member.models import TaxPayerProfile
 
 ast.literal_eval("{'x':1, 'y':2}")
@@ -118,7 +118,7 @@ class W2DetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
     queryset = W2.objects.all()
-    serializer_class = W2Serializer
+    serializer_class = W2Serializer2
     permission_classes = (permissions.IsAuthenticated,)
 
     # 나중에 url에 오는 단어를 기준으로 하나의 클래스에서 처리하게 할것
