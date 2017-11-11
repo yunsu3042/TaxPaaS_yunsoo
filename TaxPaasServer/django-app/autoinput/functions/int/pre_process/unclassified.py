@@ -12,6 +12,7 @@ __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
            'classify_points', 'cut_points', 'fix_st', 'fix_st_vertical',
            'fix_st_horizontal', 'align_small_box_points')
 
+
 @timeit
 def find_joints(image=None):
     if image.mode != "L":
