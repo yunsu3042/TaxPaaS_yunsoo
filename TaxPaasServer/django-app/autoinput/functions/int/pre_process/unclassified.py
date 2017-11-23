@@ -10,7 +10,7 @@ __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
            'check_max_line_wit', 'make_points_list', 'align_points',
            'make_box', 'make_crack', 'show_box', 'give_conditions',
            'classify_points', 'cut_points', 'fix_st', 'fix_st_vertical',
-           'fix_st_horizontal', 'align_small_box_points')
+           'fix_st_horizontal', 'align_small_box_points', 'capture_checkbox')
 
 
 @timeit
@@ -497,3 +497,152 @@ def pre_process(url=None, img=None, show=False):
     st = fix_st(st, fix_st_0=fix_st_0, fix_st_1=fix_st_1)
     img_list = make_crack(ful_img=image, st=st, end=end)
     return img_list, st, end
+
+
+def get_all_contours(img):
+    ref_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(ref_gray, 230, 255, 0)
+    image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
+
+def get_apex(contour):
+    # 이 함수는 꼭지점만을 반환합니다.
+    # arcLength는 둘레의 길이를 반환한다. closed = True라면 폐곡선의 둘레를, False라면 열려있는 곡선의 시작점에서 끝 점까지의 거리를 측정한다.
+    perimeter = cv2.arcLength(contour, True)
+    # approxPolyDP는 꼭지점의 수를 줄이는 데 사용된다. epsilon값만큼 오차를 허용해서 꼭지점을 추출한다.
+    approx = cv2.approxPolyDP(contour, epsilon=perimeter * 0.02, closed=True)
+    return approx
+
+
+class Point(object):
+    def __init__(self, args):
+        x, y = args
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        return (self.x, self.y)
+
+    def __sub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    @property
+    def length(self):
+        length = math.sqrt(self.x ** 2 + self.y ** 2)
+        return length
+
+
+def dot(a, b):
+    x = a.x * b.x
+    y = a.y * b.y
+    return x + y
+
+
+def is_rectangle(apex):
+    if len(apex) != 4:
+        return False
+    points = apex.reshape(-1, 2)
+    for index in range(4):
+        p1 = Point(points[index])
+        p2 = Point(points[(index + 1) % 4])
+        p3 = Point(points[(index + 2) % 4])
+        plist = (p1, p2, p3)
+        cosine_result = cal_cosine(plist)
+        if abs(cosine_result) <= 0.3:
+            pass
+        else:
+            return False
+    return True
+
+
+def is_regular(apex):
+    points = apex.reshape(-1, 2)
+    perimeter = cv2.arcLength(apex, True)
+    try:
+        p1, p2, p3, p4 = [Point(var) for var in points]
+    except ValueError:
+        print("꼭지점의 개수가 4개가 아닙니다. ")
+        return False
+    a = get_length(p1, p2)
+    b = get_length(p2, p3)
+    c = get_length(p3, p4)
+    d = get_length(p4, p1)
+    aver = np.average([a, b, c, d])
+    for x in [a, b, c, d]:
+        percent_error = ((aver - x) / aver) * 100
+        print(percent_error)
+        if abs(percent_error) >= 15:
+            return False
+    return True
+
+
+def get_length(a, b):
+    x_dis = a.x - b.x
+    y_dis = a.y - b.y
+    squared_dis = x_dis ** 2 + y_dis ** 2
+    result = math.sqrt(squared_dis)
+    return result
+
+
+def cal_cosine(args, **kwargs):
+    p1, p2, p3 = args
+    vector_a = p1 - p2
+    vector_b = p3 - p2
+    vector_dot = dot(vector_a, vector_b)
+    result = vector_dot / (vector_a.length * vector_b.length)
+    return result
+
+
+def get_distance(a, b):
+    result = math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+    return result
+
+
+def capture_checkbox(img):
+    in_counter = 0
+    contours = get_all_contours(img)
+    filtered_contours = []
+    print(len(contours))
+    img_area = img.shape[0] * img.shape[1]
+    for i, cnt in enumerate(contours):
+        area = cv2.contourArea(cnt)
+        if 0.0001 < area / img_area < 0.0005:
+            pass
+        else:
+            continue
+        cnt_apex = get_apex(cnt)
+        if is_rectangle(cnt_apex):
+            print("pass")
+            pass
+        else:
+            continue
+        if is_regular(cnt_apex):
+            pass
+        else:
+            continue
+
+        if in_counter >= 1:
+            dif_condition = is_different(new=cnt_apex,
+                                         ex=filtered_contours[in_counter - 1])
+            if dif_condition == True:
+                filtered_contours.append(cnt_apex)
+                in_counter += 1
+
+        else:
+            filtered_contours.append(cnt_apex)
+            in_counter += 1
+    return filtered_contours
+
+
+def is_different(new, ex):
+    new = new.reshape(-1, 2)
+    ex = ex.reshape(-1, 2)
+    for k in range(4):
+        if get_distance(ex[k], new[k]) <= 0.012 * np.sqrt(
+                                img.shape[0] ** 2 + img.shape[1] ** 2):
+            return False
+    return True

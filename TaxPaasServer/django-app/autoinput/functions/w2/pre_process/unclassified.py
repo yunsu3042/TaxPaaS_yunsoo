@@ -4,15 +4,16 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from autoinput.functions.decorator import timeit
+from autoinput.functions.decorator import timeit, is_w2
 
 __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
            'check_max_line_wit', 'make_points_list', 'align_points',
            'make_box', 'make_crack', 'show_box', 'give_conditions',
            'classify_points', 'cut_points', 'fix_st', 'fix_st_vertical',
-           'fix_st_horizontal', 'align_small_box_points')
+           'fix_st_horizontal', 'align_small_box_points', 'capture_checkbox')
 
 @timeit
+@is_w2
 def find_joints(image=None):
     if image.mode != "L":
         gray = image.convert("L")
@@ -91,6 +92,7 @@ def find_joints(image=None):
 
 
 @timeit
+@is_w2
 # 0.06797 sec
 def check_line_wit(h_final):
     # linewit은 나중에 이미지 자를 때 중요한 값이다. 선분의 두께에 따라서 이미지에 선분이 잘려 나타날 수 있다.
@@ -130,6 +132,7 @@ def check_line_wit(h_final):
 # 2번 도는 코드를 한번만 도도록 리펙토링
 # 10 sec
 @timeit
+@is_w2
 def make_points_list(line_wit, v_size2, joints):
     re_joints = joints.copy()
     one_line = []
@@ -152,6 +155,7 @@ def make_points_list(line_wit, v_size2, joints):
 
 # 0.0001sec
 @timeit
+@is_w2
 def align_points(one_line, joints):
     points = {}
     tmp = []
@@ -178,6 +182,7 @@ def align_points(one_line, joints):
 
 
 @timeit
+@is_w2
 def make_box(points, joints, v_size2, line_wit):
     # 점 주위에 박스처리 해주는 기능
     away_distance = max(3, v_size2 + line_wit)
@@ -199,6 +204,7 @@ def make_box(points, joints, v_size2, line_wit):
 
 
 @timeit
+@is_w2
 def show_box(box, mask):
     boxed = box + mask
     cv2.imshow('boxed', boxed)
@@ -210,6 +216,7 @@ def show_box(box, mask):
 
 
 @timeit
+@is_w2
 def give_conditions(points, mask, v_size2, line_wit):
     # 좌표에 컨디션을 부과해주는 함수
     mask[mask > 240] = 255
@@ -249,6 +256,7 @@ def give_conditions(points, mask, v_size2, line_wit):
 
 
 @timeit
+@is_w2
 def classify_points(c_points, joints, v_size2, line_wit, mask, points):
     # 좌표를 각각 시작점, 보조점, 끝점으로 분류해주는 기능.
     for depth_bound in range(2, 5):
@@ -272,9 +280,9 @@ def classify_points(c_points, joints, v_size2, line_wit, mask, points):
             break
         else:
             print("시작점과 다른 점들의 수가 맞지 않습니다.")
-            print("depth를 더 늘려 수정진행합니다.")
+            print("depth를 더 줄여 수정진행합니다.")
             # 점 주위에 박스처리 해주는 기능
-            up_line_wit = line_wit * depth_bound
+            up_line_wit = line_wit // depth_bound
             box = make_box(points, joints, v_size2, up_line_wit)
             show_box(box, mask)
 
@@ -286,6 +294,7 @@ def classify_points(c_points, joints, v_size2, line_wit, mask, points):
 
 
 @timeit
+@is_w2
 def cut_points(joints, is_st, is_bot, is_end, is_right):
     st = []
     end = []
@@ -309,6 +318,7 @@ def cut_points(joints, is_st, is_bot, is_end, is_right):
 
 
 @timeit
+@is_w2
 def fix_st_horizontal(v_final, st):
     allow = 3
     certain = 50
@@ -328,6 +338,7 @@ def fix_st_horizontal(v_final, st):
 
 
 @timeit
+@is_w2
 # 각 테이블 윤곽선 두께가 다를 수 있기때문에 두께를 고려해서 시작점의 vertical 좌표에 더하거나 뺄 값을 계산한다.
 # 인자는 v_final이 아니라 h_final이 들어간다는 점에 유의해야한다.
 def fix_st_vertical(h_final, st):
@@ -358,6 +369,7 @@ def fix_st_vertical(h_final, st):
 
 
 @timeit
+@is_w2
 def fix_st(st, fix_st_1, fix_st_0):
     for idx, add in enumerate(zip(fix_st_0, fix_st_1)):
         tmp = st[idx][0] + add[0], st[idx][1] + add[1]
@@ -366,6 +378,7 @@ def fix_st(st, fix_st_1, fix_st_0):
 
 
 @timeit
+@is_w2
 def make_crack(ful_img, st, end):
     img_list = []
 
@@ -381,6 +394,7 @@ def make_crack(ful_img, st, end):
 
 
 @timeit
+@is_w2
 # 13번 박스를 위한 코드
 def align_small_box_points(one_line, joints):
     points = {}
@@ -409,6 +423,7 @@ def align_small_box_points(one_line, joints):
 
 
 @timeit
+@is_w2
 def check_max_line_wit(h_final):
     h_final[h_final >= 200] = 255
     wit = 0
@@ -427,6 +442,7 @@ def check_max_line_wit(h_final):
 
 
 @timeit
+@is_w2
 def find_box_joints(image):
     # 이미지를 읽는다.
     src = np.array(image)
@@ -462,6 +478,7 @@ def find_box_joints(image):
 
 
 @timeit
+@is_w2
 def pre_process(url=None, img=None, show=False):
     if url:
         src = cv2.imread(url)
@@ -496,3 +513,151 @@ def pre_process(url=None, img=None, show=False):
     st = fix_st(st, fix_st_0=fix_st_0, fix_st_1=fix_st_1)
     img_list = make_crack(ful_img=image, st=st, end=end)
     return img_list, st, end
+
+
+def get_all_contours(img):
+    ref_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(ref_gray, 230, 255, 0)
+    image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
+
+def get_apex(contour):
+    # 이 함수는 꼭지점만을 반환합니다.
+    # arcLength는 둘레의 길이를 반환한다. closed = True라면 폐곡선의 둘레를, False라면 열려있는 곡선의 시작점에서 끝 점까지의 거리를 측정한다.
+    perimeter = cv2.arcLength(contour, True)
+    # approxPolyDP는 꼭지점의 수를 줄이는 데 사용된다. epsilon값만큼 오차를 허용해서 꼭지점을 추출한다.
+    approx = cv2.approxPolyDP(contour, epsilon=perimeter * 0.02, closed=True)
+    return approx
+
+
+class Point(object):
+    def __init__(self, args):
+        x, y = args
+        self.x = x
+        self.y = y
+
+    def __str__(self):
+        return (self.x, self.y)
+
+    def __sub__(self, other):
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    @property
+    def length(self):
+        length = math.sqrt(self.x ** 2 + self.y ** 2)
+        return length
+
+
+def dot(a, b):
+    x = a.x * b.x
+    y = a.y * b.y
+    return x + y
+
+
+def is_rectangle(apex):
+    if len(apex) != 4:
+        return False
+    points = apex.reshape(-1, 2)
+    for index in range(4):
+        p1 = Point(points[index])
+        p2 = Point(points[(index + 1) % 4])
+        p3 = Point(points[(index + 2) % 4])
+        plist = (p1, p2, p3)
+        cosine_result = cal_cosine(plist)
+        if abs(cosine_result) <= 0.3:
+            pass
+        else:
+            return False
+    return True
+
+
+def is_regular(apex):
+    points = apex.reshape(-1, 2)
+    perimeter = cv2.arcLength(apex, True)
+    try:
+        p1, p2, p3, p4 = [Point(var) for var in points]
+    except ValueError:
+        print("꼭지점의 개수가 4개가 아닙니다. ")
+        return False
+    a = get_length(p1, p2)
+    b = get_length(p2, p3)
+    c = get_length(p3, p4)
+    d = get_length(p4, p1)
+    aver = np.average([a, b, c, d])
+    for x in [a, b, c, d]:
+        percent_error = ((aver - x) / aver) * 100
+        print(percent_error)
+        if abs(percent_error) >= 15:
+            return False
+    return True
+
+
+def get_length(a, b):
+    x_dis = a.x - b.x
+    y_dis = a.y - b.y
+    squared_dis = x_dis ** 2 + y_dis ** 2
+    result = math.sqrt(squared_dis)
+    return result
+
+
+def cal_cosine(args, **kwargs):
+    p1, p2, p3 = args
+    vector_a = p1 - p2
+    vector_b = p3 - p2
+    vector_dot = dot(vector_a, vector_b)
+    result = vector_dot / (vector_a.length * vector_b.length)
+    return result
+
+
+def get_distance(a, b):
+    result = math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+    return result
+
+
+def capture_checkbox(img):
+    in_counter = 0
+    contours = get_all_contours(img)
+    filtered_contours = []
+    print(len(contours))
+    img_area = img.shape[0] * img.shape[1]
+    for i, cnt in enumerate(contours):
+        area = cv2.contourArea(cnt)
+        if 0.0001 < area / img_area < 0.0005:
+            pass
+        else:
+            continue
+        cnt_apex = get_apex(cnt)
+        if is_rectangle(cnt_apex):
+            print("pass")
+            pass
+        else:
+            continue
+        if is_regular(cnt_apex):
+            pass
+        else:
+            continue
+
+        if in_counter >= 1:
+            dif_condition = is_different(new=cnt_apex,
+                                         ex=filtered_contours[in_counter - 1])
+            if dif_condition == True:
+                filtered_contours.append(cnt_apex)
+                in_counter += 1
+
+        else:
+            filtered_contours.append(cnt_apex)
+            in_counter += 1
+    return filtered_contours
+
+
+def is_different(new, ex):
+    new = new.reshape(-1, 2)
+    ex = ex.reshape(-1, 2)
+    for k in range(4):
+        if get_distance(ex[k], new[k]) <= 0.012 * np.sqrt(
+                                img.shape[0] ** 2 + img.shape[1] ** 2):
+            return False
+    return True

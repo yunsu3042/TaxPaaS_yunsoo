@@ -1,6 +1,6 @@
 import time
 
-__all__ = ('timeit', )
+__all__ = ('timeit', 'is_int', 'is_w2')
 
 
 def timeit(func):
@@ -12,3 +12,19 @@ def timeit(func):
                                                          b=t2-t1))
         return result
     return timed
+
+
+def is_w2(func):
+    def temp(*args, **kwargs):
+        print("w2_에서 필요한 함수입니다.")
+        return func(*args, **kwargs)
+
+    return temp
+
+
+def is_int(func):
+    def temp(*args, **kwargs):
+        print("int_에서 필요한 함수입니다.")
+        return func(*args, **kwargs)
+
+    return temp
