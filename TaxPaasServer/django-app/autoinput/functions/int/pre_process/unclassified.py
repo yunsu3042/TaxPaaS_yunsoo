@@ -1,5 +1,5 @@
 import copy
-
+import math
 import cv2
 import numpy as np
 from PIL import Image
@@ -602,12 +602,12 @@ def get_distance(a, b):
     return result
 
 
-def capture_checkbox(img):
+def capture_checkbox(src):
     in_counter = 0
-    contours = get_all_contours(img)
+    contours = get_all_contours(src)
     filtered_contours = []
     print(len(contours))
-    img_area = img.shape[0] * img.shape[1]
+    img_area = src.shape[0] * src.shape[1]
     for i, cnt in enumerate(contours):
         area = cv2.contourArea(cnt)
         if 0.0001 < area / img_area < 0.0005:
@@ -627,7 +627,8 @@ def capture_checkbox(img):
 
         if in_counter >= 1:
             dif_condition = is_different(new=cnt_apex,
-                                         ex=filtered_contours[in_counter - 1])
+                                         ex=filtered_contours[in_counter - 1],
+                                         src=src)
             if dif_condition == True:
                 filtered_contours.append(cnt_apex)
                 in_counter += 1
@@ -638,11 +639,12 @@ def capture_checkbox(img):
     return filtered_contours
 
 
-def is_different(new, ex):
+def is_different(new, ex, src):
     new = new.reshape(-1, 2)
     ex = ex.reshape(-1, 2)
     for k in range(4):
         if get_distance(ex[k], new[k]) <= 0.012 * np.sqrt(
-                                img.shape[0] ** 2 + img.shape[1] ** 2):
+                                src.shape[0] ** 2 + src.shape[1] ** 2):
             return False
     return True
+
