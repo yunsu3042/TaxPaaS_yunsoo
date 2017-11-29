@@ -4,7 +4,8 @@ from PIL import Image
 from django_rq import job
 from rq import get_current_job
 
-from autoinput.functions.w2 import autocomplete
+from autoinput.functions.w2 import w2_total_process
+from autoinput.functions.int import int_total_proces
 from autoinput.models import Task, W2
 from autoinput.serializers import W2Serializer
 
@@ -21,7 +22,7 @@ def w2_autocomplete(np_arr, pk):
         job_id=job.get_id()
     )
     img = Image.fromarray(np_arr)
-    task.result, st, end = autocomplete(img=img)
+    task.result, st, end = w2_total_process(img=img)
 
     if task.result:
         rdbs = task.result
@@ -43,3 +44,19 @@ def save_model(instance=None, data=None, st=None, end=None):
     serializer = W2Serializer(instance, data=data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
+
+
+def int_autocomplete(np_arr, pk):
+    job = get_current_job()
+
+    task = Task.objects.create(
+        job_id=job.get_id()
+    )
+    img = Image.fromarray(np_arr)
+    task.result, st, end = int_total_proces(img=img)
+
+    if task.result:
+        rdbs = task.result
+        pass
+    return None
+
