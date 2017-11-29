@@ -1,252 +1,174 @@
+import numpy as np
+
 from autoinput.functions.decorator import timeit
-__all__ = ('post_process1', 'post_process2')
+from autoinput.functions import capture_checkbox
+__all__ = ('find_checkbox_index', 'post_process', 'make_int_dic')
+
 
 # 데이터 정리 작업.
-# 각각 데이터의 앞에 3글자를 통해 header를 만들고, header와 w2_dic을 연결
-# 데이터 정리 작업.
-# 각각 데이터의 앞에 3글자를 통해 header를 만들고, header와 w2_dic을 연결
+@timeit
+def find_checkbox_index(start=None, end=None, checkbox_point=None):
+    real_index = None
+    ck_start, ck_end = checkbox_point[0], checkbox_point[1]
+    for index in range(len(start)):
+        left_up = start[index]
+        right_down = end[index]
+        if ck_start[0] > left_up[1] and ck_start[1] > left_up[0]:
+            if ck_end[0] < right_down[1] and ck_end[1] < right_down[0]:
+                # print("Index - {} True".format(index))
+                real_index = index
+    return real_index
+
 
 @timeit
-def post_process1(page, w2_dic):
-    print("post_process 1을 진행합니다.")
-    word_list = ['number', 'it', '(ein)', 'other', 'compensation', 'etc', 'code', 'zip', 'wages', 'tax', 'tips',
-            'benefits', 'state', 'name', 'plan', 'pay', 'employee']
-    result = {}
-    for _ in range(10):
-        if '' in page:
-            page.remove('')
-        else:
-            break
-    for string in page:
-        header = string[:3] if ' ' not in string[:3] else string[:2]
-        if '.' in list(header):
-            tmp = list(header)
-            tmp.remove('.')
-            header = str(''.join(tmp))
-        if ' ' in list(header):
-            tmp = list(header)
-            tmp.remove(' ')
-            header = str(''.join(tmp))
-        ful_data = string.split("\n")
-        for key in w2_dic:
-            if header == key:
-                exist = True
-                break
-        data = ful_data[1:]
-        # data에 ''지우는 거, 최대 10개까지 지움.
-        for _ in range(10):
-            if '' in data:
-                data.remove('')
-            if '' not in data:
-                break
-        # exist란 ocr 결과물의 각 header와 w2_dic의 key가 일치하는 게 없는 상황.
-        # 어디서부터가 유의미한 데이터인가 : W2 양식에서 맨 마지막 단어만 word_list 넣어준다.
-        # word_dic을 for 구문으로 돌면서 data의 각 요소에 word가 있는지 파악한다.
-        # 첫쨰로 W2_dic과 일치하는 key를 찾는다.
-        # word_list에 있는 단어로 데이터와 제시문을 분리
-        if exist == True:
-            for word in word_list:
-                for lump in data:
-                    for split_lump in lump.split(" "):
-                        if split_lump.lower() == word:
-                            data.remove(lump)
-            # 깨끗한 데이터
-            if w2_dic[header] in result and len(data) == 0:
-                pass
+# mke int_dictionary - hard cording
+def make_int_dic():
+    reference_dic = {}
+    reference_dic["PAYER'S name, street address, city or town, state or province, country, ZIP or foreign postal code, and telephone no"] = "c"
+    reference_dic["PAYER‘S federal identification number"] = "d"
+    reference_dic["RECIPIENT‘S identification number"] = "e"
+    reference_dic["RECIPIENT’S name"] = "f.1"
+    reference_dic["Street address(including apt, no.)"] = "f.3"
+    reference_dic["City or town, state or province, country, and ZIP or foreign postal code"] = "f.4"
+    reference_dic["FATCA filling requirement"] = "g"
+    reference_dic["Account number See instructions"] = "h"
+    reference_dic["Payer‘s RTN(optional)"] = "i"
+
+    reference_dic[""] = ""
+    reference_dic["1"] = "interest_income"
+    reference_dic["2"] = "early_withdrawal_penalty"
+    reference_dic["3"] = "interest_us_saving_bonds"
+    reference_dic["4"] = "federal_income_tax"
+    reference_dic["5"] = "investment_expenses"
+    reference_dic["6"] = "foreign_tax_paid"
+    reference_dic["7"] = "foreign_country_us_possession"
+    reference_dic["8"] = "tax_exempt_interest"
+    reference_dic["9"] = "specified_private_bond"
+    reference_dic["10"] = "market_discount"
+    reference_dic["11"] = "bond_premium"
+    reference_dic["12"] = ""
+    reference_dic["13"] = "bond_premium_tax_exempt"
+    reference_dic["14"] = "tax_exempt_tax_credit"
+    reference_dic["15"] = "state_recheck"
+    reference_dic["16"] = "state_in"
+    reference_dic["17"] = "state_tax"
+    return reference_dic
+
+
+# checkbox 내부 값 추출하기
+def extract_checkbox_data(img=None, check_box=None):
+    ck_start, ck_end = check_box[0][0][0], check_box[0][2][0]
+    checkbox_img = img.crop((ck_start[0], ck_start[1], ck_end[0], ck_end[1]))
+    data = np.mean(np.array(checkbox_img))
+    is_checked = data <= 252
+    return is_checked
+
+
+def post_process(page=None, reference_dic=None, img=None):
+    print("int _ post_proces")
+    filtered_page = [string.split("\n\n") for string in page]
+
+    # 글자 오타 다듬기.
+    doc_dict = {}
+    for idx, string in enumerate(filtered_page):
+
+        try:
+            key = string[0]
+            key = key.replace("\n", " ")
+            key = key.replace(".", "")
+        except:
+            key = 'no_key'
+        try:
+            # 예외처리
+            if key == "1 5 state":
+                key = "15 state"
+            ## 예외처리
+            if key == "RECIPIENT’S name":
+                value = string[1]
+                doc_dict[key] = value
+                key2 = string[2]
+                doc_dict[key2] = string[3]
+                key3 = string[4]
+                doc_dict[key3] = string[5]
             else:
-                result[w2_dic[header]] = data
-        else:
-            print("page와 일치하는 key가 존재하지 않습니다.{}".format(header))
+                value = string[1:]
+                value = [string.replace("\n", " ") for string in value]
+                doc_dict[key] = value
+        except IndexError:
+            doc_dict[key] = 'no_value'
 
-    # 있다면 카피한 data_list에서 뺀다.
-    # 데이터를 뽑는다.
-    if '13 Statutory employee' in result:
-        result['Statutory employee'] = result['13 Statutory employee']
-        result.pop('13 Statutory employee', None)
-    if 'Statutory Employee' in result:
-        result['Statutory employee'] = result['Statutory Employee']
-        result.pop('Statutory Employee')
-    check_list = ['Retirement plan', 'Statutory employee', 'Third-party sick pay', 'Statutory Employee']
-    for check in check_list:
-        if check in result:
-            tmp = result[check]
-            if len(tmp) == 0:
-                result[check] = 'N'
-            elif tmp in [['N'], ['n']]:
-                result[check] = 'N'
-            elif tmp in [['Y'], ['y'], ['X']]:
-                result[check] = 'Y'
-
-    number_data = ['1 Wages, tips, other compensation', '16 State wages, tips, etc'
-                  ,'17 State income tax', '18 Local wages, tips, etc', '19 Local income tax',
-                   '2 Federal income tax withheld', '3 Social security wages', '4 Social security tax withheld',
-                  '5 Medicare wages and tips', '6 Medicare tax withheld', '7 Social security tips',]
-    for key in number_data:
-        if key in result:
-            if len(result[key]) == 0:
-                pass
-            elif len(result[key]) == 1:
-                tmp = result[key][0]
-                good = ''.join(tmp.split(" "))
-                try:
-                    result[key] = float(good)
-                except ValueError:
-                    # 잘못읽어 햇갈리기 쉬운 거 처리.
-                    confused = [('l', '1'), ('o', '0'), ('O', '0')]
-                    for x in confused:
-                        if x[0] in good:
-                            listed_good = list(good)
-                            idx= listed_good.index(x[0])
-                            listed_good[idx] = x[1]
-                            good = ''.join(listed_good)
-                            good = ''.join(good)
-                    try:
-                        result[key] = float(good)
-                    except:
-                        print("오류 {}는 숫자만 있어야 하는 데이터입니다. 다른 값이 들어가 있습니다.".format(key))
-            else:
-                print('오류 number_data: {} 는 하나의 데이터가 아닙니다. '.format(key) )
-
-    key = 'c Employer’s Name, Address, and ZIP Code'
-    return result
-
-@timeit
-def post_process2(result):
-    print("post_process 2을 시작합니다.")
+    # Mapping
+    # numbered key Mapping
     rdbs = {}
-
-    ssn = result["a Employee's social security number"][0]
-    first_name = result["e Employee's Name, Address, and ZIP Code"][0].split(" ")[0]
-    last_name = result["e Employee's Name, Address, and ZIP Code"][0].split(" ")[1]
-    street = result["e Employee's Name, Address, and ZIP Code"][1]
-    employee_state_zip_code = result["e Employee's Name, Address, and ZIP Code"][2].split(",")[1].split(" ")
-    for _ in range(10):
-        if '' in employee_state_zip_code:
-            employee_state_zip_code.remove('')
-        else:
-            break
-    city = result["e Employee's Name, Address, and ZIP Code"][2].split(",")[0]
-    EIN = result['b Employer identiﬁcation number'][0]
-    if "#" in result['c Employer’s Name, Address, and ZIP Code'][0]:
-        employer_name = result['c Employer’s Name, Address, and ZIP Code'][0].split("#")[0]
-    else:
-        employer_name = result['c Employer’s Name, Address, and ZIP Code'][0]
-    employer_street = result['c Employer’s Name, Address, and ZIP Code'][1]
-    if ',' in result['c Employer’s Name, Address, and ZIP Code'][2]:
-        employer_multi = result['c Employer’s Name, Address, and ZIP Code'][2].split(",")
-    else:
-        employer_multi = result['c Employer’s Name, Address, and ZIP Code'][2].split(" ")
-    employer_city = employer_multi[0]
-    if len(employer_multi[1:]) > 1:
-        employer_state_zip = employer_multi[1:]
-    else:
-        employer_state_zip = employer_multi[1].split(" ")
-        for _ in range(10):
-            if '' in employer_state_zip:
-                employer_state_zip.remove('')
+    for key, val in doc_dict.items():
+        try:
+            int(key[:2])
+            key_number = key[:2]
+            key_number = key_number.strip()
+            new_key = reference_dic[key_number]
+            if len(val) == 1:
+                new_val = val[0]
+                new_val = new_val.replace("$", "")
+                new_val = new_val.strip()
+                rdbs[new_key] = new_val
+            elif len(val) == 0:
+                rdbs[new_key] = ""
             else:
-                break
-    employer_state = employer_state_zip[0]
-    employer_zip = employer_state_zip[1]
+                rdbs[new_key] = val
 
-    wage = result['1 Wages, tips, other compensation']
-    federal_income = result['2 Federal income tax withheld']
-    social_security_wages = result['3 Social security wages']
-    social_security_tax = result['4 Social security tax withheld']
-    medicare_wages = result['5 Medicare wages and tips']
-    medicare_tax = result['6 Medicare tax withheld']
-    social_security_tips = result['7 Social security tips']
-    allocated_tips = result['8 Allocated tips']
-    dependent_care_benefits = result['10 Dependent Care Benefits']
-    if '11 Nonqualiﬁed plans' in result:
-        non_qualified_plans = result['11 Nonqualiﬁed plans']
-    else:
-        non_qualified_plans = []
-    if '12a See instructions for box 12' in result:
-        box12a = result['12a See instructions for box 12'][0]
-    else:
-        box12a = result['12 See Instructions for box 12'][0]
-    if '12b Not defined' in result:
-        box12b = result['12b Not defined']
-    else:
-        box12b = []
-    if '12c Not defined' in result:
-        box12c = result['12c Not defined']
-    else:
-        box12c = []
-    if '12d Not defined' in result:
-        box12d = result['12d Not defined']
-    else:
-        box12d = []
-    box13_se = result['Statutory employee']
-    box13_rp = result['Retirement plan']
-    box13_tpsp = result['Third-party sick pay']
-    if len(result['14 Other']) != 0:
-        box14_type = result['14 Other'][0].split(" ")[0]
-        box14_amount = result['14 Other'][0].split(" ")[1]
-    else:
-        box14_type = []
-        box14_amount = []
-    if "|" in result['15 State Employer‘s state ID number'][0]:
-        employer_state2 = result['15 State Employer‘s state ID number'][0].split("|")[0]
-        employer_state_id = result['15 State Employer‘s state ID number'][0].split("|")[1]
-    else:
-        employer_state2 = result['15 State Employer‘s state ID number'][0]
-        employer_state_id = result["Employer's State ID Number"][0]
-    for _ in range(10):
-        if ' ' in employer_state_id:
-            if type(employer_state_id) != list:
-                tmp = list(employer_state_id)
-                tmp.remove(' ')
-                employer_state_id = "".join(tmp)
-            else:
-                employer_state_id.remove(' ')
-        else:
-            break
+        except ValueError:
+            # Unnumbered Key Mapping 1 - hard cording
+            if key in reference_dic.keys():
+                new_key = reference_dic[key]
+                rdbs[new_key] = val
 
-    state_wages = result['16 State wages, tips, etc']
-    state_tax = result['17 State income tax']
-    locality_name = result['20 Locality name']
-    local_wages = result['18 Local wages, tips, etc']
-    local_tax = result['19 Local income tax']
+    # Unnumberd Key Mapping 2 - Case 나누어서 Hard Cording으로 처리
+    # - 추후에 이 부분을 처리하는 게 머신러닝이 필요한 일.
+    c_value = rdbs['c']
+    rdbs["payer_name"] = c_value[0]
+    rdbs["street_address"] = c_value[1]
+    city_and_state = c_value[2].split(",")
+    rdbs["city"] = city_and_state[0]
+    rdbs["state"] = city_and_state[1].split(" ")[0]
+    rdbs["zip_code"] = city_and_state[1].split(" ")[1]
+    del (rdbs["c"])
 
-    rdbs['ssn'] = ssn
-    rdbs['employee_first_name'] = str(first_name)
-    rdbs['employee_last_name'] = str(last_name)
-    rdbs['employee_zip_code'] = str(employee_state_zip_code[1])
-    rdbs['street'] = str(street)
-    rdbs['employee_city'] = str(city)
-    rdbs['employee_state'] = str(employee_state_zip_code[0])
-    rdbs['ein'] = str(EIN)
-    rdbs['employer_name'] = str(employer_name)
-    rdbs['employer_zip'] = str(employer_zip)
-    rdbs['employer_street'] = str(employer_street)
-    rdbs['employer_city'] = str(employer_city)
-    rdbs['employer_state'] = str(employer_state)
-    rdbs['wage'] = str(wage)
-    rdbs['federal_income'] = str(federal_income)
-    rdbs['social_security_wages'] = str(social_security_wages)
-    rdbs['social_security_tax'] = str(social_security_tax)
-    rdbs['medicare_wages'] = str(medicare_wages)
-    rdbs['medicare_tax'] = str(medicare_tax)
-    rdbs['social_security_tips'] = str(social_security_tips)
-    rdbs['allocated_tips'] = str(allocated_tips)
-    rdbs['dependent_care_benefits'] = str(dependent_care_benefits)
-    rdbs['non_qualified_plans'] = str(non_qualified_plans)
-    rdbs['box12a'] = str(box12a)
-    rdbs['box12b'] = str(box12b)
-    rdbs['box12c'] = str(box12c)
-    rdbs['box12d'] = str(box12d)
-    rdbs['box13_se'] = str(box13_se)
-    rdbs['box13_rp'] = str(box13_rp)
-    rdbs['box13_tpsp'] = str(box13_tpsp)
-    rdbs['box14_type'] = str(box14_type)
-    rdbs['box14_amount'] = str(box14_amount)
-    rdbs['employer_state2'] = str(employer_state2)
-    rdbs['employer_state_id'] = str(employer_state_id)
-    rdbs['state_wages'] = str(state_wages)
-    rdbs['state_tax'] = str(state_tax)
-    rdbs['locality_name'] = str(locality_name)
-    rdbs['local_wages'] = str(local_wages)
-    rdbs['local_tax'] = str(local_tax)
+    rdbs['payer_federal_in'] = rdbs["d"][0]
+    del (rdbs["d"])
+
+    rdbs["recipient_in"] = rdbs["e"][0].replace(" ", "")
+    del (rdbs["e"])
+
+    f1_value = rdbs['f.1']
+    rdbs["recipient_first_name"] = f1_value.split(" ")[0]
+    rdbs["recipient_last_name"] = " ".join(f1_value.split(" ")[1:])
+    del (rdbs["f.1"])
+
+    f3_value = rdbs["f.3"]
+    rdbs["street_address"] = f3_value
+    del (rdbs['f.3'])
+
+    f4_value = rdbs['f.4']
+    rdbs["city_check"] = f4_value.split(",")[0]
+    rdbs["state_check"] = f4_value.split(",")[1].strip().split(" ")[0]
+    rdbs["zip_code_check"] = f4_value.split(",")[1].strip().split(" ")[1]
+    del (rdbs['f.4'])
+
+    # 체크박스 데이터 추출 및 매핑 - hardcording
+    # 여기에서는 데이터가 하나이기 떄문에 하드코딩함.
+    src = np.array(img)
+    check_box = capture_checkbox(src=src)
+    is_checked = extract_checkbox_data(img=img, check_box=check_box)
+    rdbs['fatca_filling'] = is_checked
+    del (rdbs['g'])
+
+    h_value = rdbs['h']
+    rdbs['account_number'] = h_value[0] if len(h_value) >= 1 else ''
+    del (rdbs['h'])
+
+    i_value = rdbs['i']
+    rdbs['payer_rtn'] = i_value[0] if len(i_value) >= 1 else ''
+    del (rdbs['i'])
+
+    del (rdbs[""])
     return rdbs

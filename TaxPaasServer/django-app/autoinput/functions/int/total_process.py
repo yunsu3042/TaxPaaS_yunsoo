@@ -1,19 +1,11 @@
-import pickle
+from . import pre_process, ocr_process, make_int_dic, post_process
 
-from unipath import Path
-
-from . import pre_process, ocr_process, post_process1, post_process2
-dic_path = Path(__file__).ancestor(3).child('dictionary')
-w2_path = dic_path.child('w2_dictionary.pk1')
-
-__all__ = ('autocomplete', )
+__all__ = ('int_total_proces', )
 
 
-def autocomplete(url=None, img=None):
-    with open(w2_path, 'rb') as f:
-        w2_dic = pickle.load(f)
-    img_list, st, end = pre_process(url=url, img=img, show=False)
-    page = ocr_process(img_list)
-    result = post_process1(page=page, w2_dic=w2_dic)
-    rdbs = post_process2(result=result)
+def int_total_proces(url=None, img=None):
+    img_list, st, end = pre_process(img=img)
+    page = ocr_process(img_list=img_list)
+    reference_dic = make_int_dic()
+    rdbs = post_process(page=page, reference_dic=reference_dic, img=img)
     return rdbs, st, end

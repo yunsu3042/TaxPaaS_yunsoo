@@ -6,10 +6,10 @@ from . import pre_process, ocr_process, post_process1, post_process2
 dic_path = Path(__file__).ancestor(3).child('dictionary')
 w2_path = dic_path.child('w2_dictionary.pk1')
 
-__all__ = ('autocomplete', )
+__all__ = ('w2_total_process', )
 
 
-def autocomplete(url=None, img=None):
+def w2_total_process(url=None, img=None):
     with open(w2_path, 'rb') as f:
         w2_dic = pickle.load(f)
     img_list, st, end = pre_process(url=url, img=img, show=False)
