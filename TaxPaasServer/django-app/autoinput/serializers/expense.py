@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from autoinput.models import Ten99INT, Ten99DIV, Ten99G, Ten99MISC, \
     Ten99Mortgage, Ten98EStudentLoanInterest, ChildCare
+from autoinput.models import W2
 
 __all__ = ('Ten99INTSerializer', 'Ten99DIVSerializer', 'Ten99GSerializer',
            'Ten99MISCSerializer', 'Ten99MortgageSerializer',
