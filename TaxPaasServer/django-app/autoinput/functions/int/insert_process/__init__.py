@@ -1,1 +1,0 @@
-from .insert_data import *
