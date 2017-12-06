@@ -3,12 +3,14 @@ from rest_framework import permissions
 from rest_framework.response import Response
 
 from autoinput.models import W2
-from autoinput.serializers import W2Serializer, W2Serializer2
+from autoinput.serializers import Ten99INTSerializer2, Ten99INTSerializer
+
+__all__ = ('IntDetailView2', )
 
 
-class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
+class IntDetailView2(generics.RetrieveUpdateDestroyAPIView):
     queryset = W2.objects.all()
-    serializer_class = W2Serializer2
+    serializer_class = Ten99INTSerializer2
     permission_classes = (permissions.IsAuthenticated,)
 
     # 나중에 url에 오는 단어를 기준으로 하나의 클래스에서 처리하게 할것
@@ -20,7 +22,7 @@ class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
         partial = True
         instance = self.get_object()
         data = request.data
-        serializer = W2Serializer(instance, data=data,
+        serializer = Ten99INTSerializer(instance, data=data,
                                          partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -31,7 +33,7 @@ class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         print(serializer.data)
 
-        last_serializer= W2Serializer2(instance)
+        last_serializer= Ten99INTSerializer2(instance)
         return Response(last_serializer.data)
 
     def perform_update(self, serializer):

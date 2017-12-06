@@ -9,8 +9,6 @@ from autoinput.models import W2
 from autoinput.serializers import W2Serializer, W2Serializer2
 from member.models import TaxPayerProfile
 
-ast.literal_eval("{'x':1, 'y':2}")
-
 __all__ = ('W2DetailView', 'W2DetailView2')
 
 
@@ -142,7 +140,7 @@ class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
             instance._prefetched_objects_cache = {}
         print(serializer.data)
 
-        last_serializer= W2Serializer2(instance)
+        last_serializer = W2Serializer2(instance)
         return Response(last_serializer.data)
 
     def perform_update(self, serializer):
@@ -152,7 +150,7 @@ class W2DetailView2(generics.RetrieveUpdateDestroyAPIView):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
-                # rdbs['1'] = ssn
+# rdbs['1'] = ssn
 # rdbs['8'] = EIN
 # rdbs['2'] = first_name
 # rdbs['3'] = last_name
