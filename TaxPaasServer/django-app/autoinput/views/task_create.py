@@ -7,12 +7,14 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from autoinput.models import Task, W2
+from autoinput.models import Task, W2, Ten99INT, Ten99DIV
 from autoinput.serializers import TaskSerializer
-from autoinput.task_func import w2_autocomplete
+from autoinput.task_func import w2_autocomplete, int_autocomplete, \
+    div_autocomplete
 from member.models import TaxPayerProfile
 
-__all__ = ('W2TaskCreateView', 'W2TaskCreateView2')
+__all__ = ('W2TaskCreateView2', "W2TaskCreateView", "IntTaskCreateView",
+           "DivTaskCreateView")
 
 
 # W2 Task Queue Create View
@@ -97,3 +99,53 @@ class W2TaskCreateView2(generics.CreateAPIView):
 
     def resize_img(self, size):
         pass
+
+
+# Int Task Queue Create View
+
+class IntTaskCreateView(generics.CreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        pk = request.data['pk']
+        int_obj = get_object_or_404(Ten99INT, pk=pk)
+
+        file = storage.open(int_obj.img.name)
+        img = Image.open(file)
+        # img = resize_img(img, size)
+        np_img = np.array(img)
+        int_autocomplete.delay(np_img, int_obj.pk)
+        return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
+
+    def resize_img(self, size):
+        pass
+
+
+# Div Task Queue Create View
+class DivTaskCreateView(generics.CreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        pk = request.data['pk']
+        div = get_object_or_404(Ten99DIV, pk=pk)
+
+        file = storage.open(div.img.name)
+        img = Image.open(file)
+        # img = resize_img(img, size)
+        np_img = np.array(img)
+        div_autocomplete.delay(np_img, div.pk)
+        return Response({'status':'ok'}, status=status.HTTP_201_CREATED)
+
+    def resize_img(self, size):
+        pass
+
