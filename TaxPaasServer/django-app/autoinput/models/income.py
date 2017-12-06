@@ -52,7 +52,5 @@ class W2(models.Model):
     local_wages = models.CharField(max_length=50, blank=True)
     local_tax = models.CharField(max_length=50, blank=True)
 
-
-
     def __str__(self):
         return "w2"
