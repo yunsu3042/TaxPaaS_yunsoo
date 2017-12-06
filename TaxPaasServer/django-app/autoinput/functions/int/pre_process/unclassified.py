@@ -12,6 +12,20 @@ __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
            'classify_points', 'cut_points', 'fix_st', 'fix_st_vertical',
            'fix_st_horizontal', 'align_small_box_points', 'capture_checkbox')
 
+import copy
+import math
+import cv2
+import numpy as np
+from PIL import Image
+
+from autoinput.functions.decorator import timeit
+
+__all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
+           'check_max_line_wit', 'make_points_list', 'align_points',
+           'make_box', 'make_crack', 'show_box', 'give_conditions',
+           'classify_points', 'cut_points', 'fix_st', 'fix_st_vertical',
+           'fix_st_horizontal', 'align_small_box_points', 'capture_checkbox')
+
 
 @timeit
 def find_joints(image=None):
@@ -464,6 +478,7 @@ def find_box_joints(image):
 
 @timeit
 def pre_process(url=None, img=None, show=False):
+    print("int 이미지 전처리")
     if url:
         src = cv2.imread(url)
         gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
