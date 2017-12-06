@@ -1,5 +1,6 @@
 import numpy as np
-
+import cv2
+from PIL import Image
 from autoinput.functions.decorator import timeit
 from autoinput.functions import capture_checkbox
 __all__ = ('find_checkbox_index', 'post_process', 'make_int_dic')
@@ -24,15 +25,17 @@ def find_checkbox_index(start=None, end=None, checkbox_point=None):
 # mke int_dictionary - hard cording
 def make_int_dic():
     reference_dic = {}
-    reference_dic["PAYER'S name, street address, city or town, state or province, country, ZIP or foreign postal code, and telephone no"] = "c"
-    reference_dic["PAYER‘S federal identification number"] = "d"
-    reference_dic["RECIPIENT‘S identification number"] = "e"
+    reference_dic[
+        "PAYER'S name, street address, city or town, state or province, country, ZIP or foreign postal code, and telephone no"] = "c"
+    reference_dic["PAYER’s federal identification number"] = "d"
+    reference_dic["RECIPIENT’S identification number"] = "e"
     reference_dic["RECIPIENT’S name"] = "f.1"
-    reference_dic["Street address(including apt, no.)"] = "f.3"
-    reference_dic["City or town, state or province, country, and ZIP or foreign postal code"] = "f.4"
+    reference_dic["Street address(including apt, no,)"] = "f.3"
+    reference_dic[
+        "City or town, state or province, country, and ZIP or foreign postal code"] = "f.4"
     reference_dic["FATCA filling requirement"] = "g"
     reference_dic["Account number See instructions"] = "h"
-    reference_dic["Payer‘s RTN(optional)"] = "i"
+    reference_dic["Payer’s RTN(optional)"] = "i"
 
     reference_dic[""] = ""
     reference_dic["1"] = "interest_income"
@@ -52,6 +55,7 @@ def make_int_dic():
     reference_dic["15"] = "state_recheck"
     reference_dic["16"] = "state_in"
     reference_dic["17"] = "state_tax"
+
     return reference_dic
 
 
@@ -60,14 +64,14 @@ def extract_checkbox_data(img=None, check_box=None):
     ck_start, ck_end = check_box[0][0][0], check_box[0][2][0]
     checkbox_img = img.crop((ck_start[0], ck_start[1], ck_end[0], ck_end[1]))
     data = np.mean(np.array(checkbox_img))
-    is_checked = data <= 252
-    return is_checked
+    if data <= 252:
+        return "Yes"
+    else:
+        return "No"
 
 
 def post_process(page=None, reference_dic=None, img=None):
-    print("int _ post_proces")
     filtered_page = [string.split("\n\n") for string in page]
-
     # 글자 오타 다듬기.
     doc_dict = {}
     for idx, string in enumerate(filtered_page):
@@ -82,7 +86,6 @@ def post_process(page=None, reference_dic=None, img=None):
             # 예외처리
             if key == "1 5 state":
                 key = "15 state"
-            ## 예외처리
             if key == "RECIPIENT’S name":
                 value = string[1]
                 doc_dict[key] = value
@@ -90,15 +93,21 @@ def post_process(page=None, reference_dic=None, img=None):
                 doc_dict[key2] = string[3]
                 key3 = string[4]
                 doc_dict[key3] = string[5]
-            else:
-                value = string[1:]
-                value = [string.replace("\n", " ") for string in value]
-                doc_dict[key] = value
+            if key == "PAYE R’s federal identification number":
+                key = "PAYER’s federal identification number"
+            if key == 'Accou nt number See instructions':
+                key = 'Account number See instructions'
+
+            value = string[1:]
+            value = [string.replace("\n", " ") for string in value]
+            doc_dict[key] = value
+
+
         except IndexError:
             doc_dict[key] = 'no_value'
 
-    # Mapping
-    # numbered key Mapping
+    print("int _ post_proces")
+    ## Mapping
     rdbs = {}
     for key, val in doc_dict.items():
         try:
@@ -117,20 +126,17 @@ def post_process(page=None, reference_dic=None, img=None):
                 rdbs[new_key] = val
 
         except ValueError:
-            # Unnumbered Key Mapping 1 - hard cording
             if key in reference_dic.keys():
                 new_key = reference_dic[key]
                 rdbs[new_key] = val
 
-    # Unnumberd Key Mapping 2 - Case 나누어서 Hard Cording으로 처리
-    # - 추후에 이 부분을 처리하는 게 머신러닝이 필요한 일.
     c_value = rdbs['c']
     rdbs["payer_name"] = c_value[0]
     rdbs["street_address"] = c_value[1]
     city_and_state = c_value[2].split(",")
     rdbs["city"] = city_and_state[0]
-    rdbs["state"] = city_and_state[1].split(" ")[0]
-    rdbs["zip_code"] = city_and_state[1].split(" ")[1]
+    rdbs["state"] = city_and_state[1].strip().split(" ")[0]
+    rdbs["zip_code"] = city_and_state[1].strip().split(" ")[1]
     del (rdbs["c"])
 
     rdbs['payer_federal_in'] = rdbs["d"][0]
@@ -140,8 +146,8 @@ def post_process(page=None, reference_dic=None, img=None):
     del (rdbs["e"])
 
     f1_value = rdbs['f.1']
-    rdbs["recipient_first_name"] = f1_value.split(" ")[0]
-    rdbs["recipient_last_name"] = " ".join(f1_value.split(" ")[1:])
+    rdbs["recipient_first_name"] = f1_value[0].split(" ")[0]
+    rdbs["recipient_last_name"] = " ".join(f1_value[0].split(" ")[1:])
     del (rdbs["f.1"])
 
     f3_value = rdbs["f.3"]
@@ -154,10 +160,9 @@ def post_process(page=None, reference_dic=None, img=None):
     rdbs["zip_code_check"] = f4_value.split(",")[1].strip().split(" ")[1]
     del (rdbs['f.4'])
 
-    # 체크박스 데이터 추출 및 매핑 - hardcording
-    # 여기에서는 데이터가 하나이기 떄문에 하드코딩함.
+    g_value = rdbs['g']
     src = np.array(img)
-    check_box = capture_checkbox(src=src)
+    check_box = [capture_checkbox(src=src)[0]]
     is_checked = extract_checkbox_data(img=img, check_box=check_box)
     rdbs['fatca_filling'] = is_checked
     del (rdbs['g'])
