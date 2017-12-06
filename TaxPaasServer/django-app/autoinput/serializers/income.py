@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from autoinput.models import W2
 import ast
-from PIL import Image
 __all__ = ('W2Serializer', 'W2Serializer2')
 
 
@@ -14,16 +13,10 @@ class W2Serializer(serializers.ModelSerializer):
 
 class W2Serializer2(serializers.ModelSerializer):
     results = serializers.SerializerMethodField()
-    img_size = serializers.SerializerMethodField()
 
     class Meta:
         model = W2
-        fields = ('id', 'img', 'img_size', 'source_doc', 'order', 'results')
-
-
-    def get_img_size(self, obj):
-        img = obj.img
-        return img.size
+        fields = ('id', 'img', 'source_doc', 'order', 'results')
 
     def get_results(self, obj):
         w2 = W2.objects.filter(pk=obj.pk)[0]
