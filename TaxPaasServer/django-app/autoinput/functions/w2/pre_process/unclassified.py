@@ -480,6 +480,7 @@ def find_box_joints(image):
 @timeit
 @is_w2
 def pre_process(url=None, img=None, show=False):
+    print("W2 Image 전처리")
     if url:
         src = cv2.imread(url)
         gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
