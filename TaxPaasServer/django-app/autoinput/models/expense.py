@@ -9,6 +9,8 @@ class Ten99INT(models.Model):
     img = models.ImageField(upload_to="ten99int")
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True, null=True)
     order = models.IntegerField(default=0)
+    cut_start_points = models.TextField(blank=True)
+    cut_end_points = models.TextField(blank=True)
     state = models.CharField(max_length=50, blank=True)
     specified_private_bond = models.CharField(max_length=50, blank=True)
     bond_premium_tax_exempt = models.CharField(max_length=50, blank=True)
@@ -41,12 +43,54 @@ class Ten99INT(models.Model):
     account_number = models.CharField(max_length=50, blank=True)
     foreign_tax_paid = models.CharField(max_length=50, blank=True)
 
+    def __str__(self):
+        return "int"
+
 
 # 배당소득
 class Ten99DIV(models.Model):
-    source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True, null=True)
-    qualified_dividends = models.CharField(max_length=30, blank=True)
-    name = models.CharField(max_length=30, blank=True)
+    img = models.ImageField(upload_to="ten99int")
+    source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True,
+                                   null=True)
+    order = models.IntegerField(default=0)
+    cut_start_points = models.TextField(blank=True)
+    cut_end_points = models.TextField(blank=True)
+    qualified_dividends = models.CharField(max_length=50, blank=True)
+    fatca_filling = models.CharField(max_length=50, blank=True)
+    cash_liquidation_distributions = models.CharField(max_length=50, blank=True)
+    total_ordinary_dividends = models.CharField(max_length=50, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    zip_code_check = models.CharField(max_length=50, blank=True)
+    unrecap = models.CharField(max_length=50, blank=True)
+    city_check = models.CharField(max_length=50, blank=True)
+    total_capital_gain_distr = models.CharField(max_length=50, blank=True)
+    payer_federal_in = models.CharField(max_length=50, blank=True)
+    street_address = models.CharField(max_length=50, blank=True)
+    zip_code = models.CharField(max_length=50, blank=True)
+    collectibles_gain = models.CharField(max_length=50, blank=True)
+    specified_private_activity_bond = models.CharField(max_length=50, blank=True)
+    recipient_first_name = models.CharField(max_length=50, blank=True)
+    payer_name = models.CharField(max_length=50, blank=True)
+    street_address_recheck = models.CharField(max_length=50, blank=True)
+    federal_income_tax = models.CharField(max_length=50, blank=True)
+    investment_expense = models.CharField(max_length=50, blank=True)
+    noncash_liquidation_distributions = models.CharField(max_length=50, blank=True)
+    recipient_in = models.CharField(max_length=50, blank=True)
+    foreign_tax = models.CharField(max_length=50, blank=True)
+    state_in = models.CharField(max_length=50, blank=True)
+    state_recheck = models.CharField(max_length=50, blank=True)
+    state_tax = models.CharField(max_length=50, blank=True)
+    recipient_last_name = models.CharField(max_length=50, blank=True)
+    state_check = models.CharField(max_length=50, blank=True)
+    foreign_country_possession = models.CharField(max_length=50, blank=True)
+    nondividend_distributions = models.CharField(max_length=50, blank=True)
+    exempt_interest_dividends = models.CharField(max_length=50, blank=True)
+    account_number = models.CharField(max_length=50, blank=True)
+    city = models.CharField(max_length=50, blank=True)
+    section_1202_gain = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return "div"
 
 
 # 정부 지원금, 실업수당 포함
