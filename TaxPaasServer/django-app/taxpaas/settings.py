@@ -23,7 +23,6 @@ STATIC_ROOT = BASE_DIR.child("collected_static")
 
 MEDIA_ROOT = BASE_DIR.child('media')
 
-
 en_name = os.environ.get("LOGNAME")
 
 # User model
@@ -227,8 +226,6 @@ LOGGING = {
         },
     },
 }
-
-import django
 
 
 # secret key

@@ -49,7 +49,7 @@ class Ten99INT(models.Model):
 
 # 배당소득
 class Ten99DIV(models.Model):
-    img = models.ImageField(upload_to="ten99int")
+    img = models.ImageField(upload_to="ten99div")
     source_doc = models.ForeignKey('autoinput.SourceDoc', blank=True,
                                    null=True)
     order = models.IntegerField(default=0)

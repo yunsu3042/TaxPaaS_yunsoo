@@ -2,14 +2,14 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.response import Response
 
-from autoinput.models import W2
+from autoinput.models import Ten99INT
 from autoinput.serializers import Ten99INTSerializer2, Ten99INTSerializer
 
 __all__ = ('IntDetailView2', )
 
 
 class IntDetailView2(generics.RetrieveUpdateDestroyAPIView):
-    queryset = W2.objects.all()
+    queryset = Ten99INT.objects.all()
     serializer_class = Ten99INTSerializer2
     permission_classes = (permissions.IsAuthenticated,)
 
