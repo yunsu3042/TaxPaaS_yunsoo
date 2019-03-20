@@ -2,8 +2,11 @@ import copy
 import math
 import cv2
 import numpy as np
+import sys
+import os
 from PIL import Image
-
+main_package = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
+sys.path.append(main_package)
 from autoinput.functions.decorator import timeit, is_w2
 
 __all__ = ('pre_process', 'find_joints', 'find_box_joints', 'check_line_wit',
